@@ -48,11 +48,38 @@ if "$decoder" --filter "$examples/rtl-keys.json" < "$tmp/input" > "$tmp/output";
 fi
 "$jq" -se 'length == 1 and .[0].code == "unsupported"' "$tmp/output" >/dev/null
 
+for content in \
+    '[{"lla":"2D2C123456780107","keys":[]}]' \
+    '[{"lla":"2D2C123456780107","key":"not hex","type":"unknown"}]' \
+    '[{"keys":[{"key":"invalid","type":"unknown","extra":[null,true,{"x":-1.25e+2,"s":"\u1234"}]}],"lla":"2D2C123456780107"}]' \
+    '[{"key":null,"keys":{"unexpected":[1,2]},"type":false,"lla":"2D2C123456780107"}]'; do
+    printf '%s' "$content" > "$tmp/filter.json"
+    "$decoder" --filter "$tmp/filter.json" < "$tmp/input" > "$tmp/output"
+    "$jq" -se 'length == 1 and .[0].primary_identity.serial_no == 78563412' "$tmp/output" >/dev/null
+    if "$decoder" --keys "$tmp/filter.json" < /dev/null > "$tmp/output" 2> "$tmp/error"; then
+        echo "Expected invalid keys to fail: $content" >&2
+        exit 1
+    fi
+    test -s "$tmp/error"
+    if "$decoder" --filter "$tmp/filter.json" --keys "$tmp/filter.json" < /dev/null > "$tmp/output" 2> "$tmp/error"; then
+        echo "Expected combined use to reject invalid keys: $content" >&2
+        exit 1
+    fi
+    test -s "$tmp/error"
+done
+
+"$jq" -n '[{"lla":"2D2C123456780107","keys":[range(0; 129) | {"key":"invalid"}]}]' > "$tmp/filter.json"
+"$decoder" --filter "$tmp/filter.json" < "$tmp/input" > "$tmp/output"
+"$jq" -se 'length == 1 and .[0].primary_identity.serial_no == 78563412' "$tmp/output" >/dev/null
+
 for content in '{}' '[{}]' '[{"link_layer_address":""}]' \
     '[{"application_layer_address":"9344887766555508","ala":"9344887766555508"}]' \
     '[{"application_layer_address":"9344887766555508","unknown":1}]' \
-    '[{"application_layer_address":"9344887766555508","keys":[]}]' \
-    '[{"application_layer_address":"9344887766555508","type":"synchronous"}]' \
+    '[{"application_layer_address":"9344887766555508","keys":[1,]}]' \
+    '[{"application_layer_address":"9344887766555508","keys":{"x":1,}}]' \
+    '[{"application_layer_address":"9344887766555508","key":"bad\q"}]' \
+    '[{"application_layer_address":"9344887766555508","key":01}]' \
+    '[{"application_layer_address":"9344887766555508","key":1.}]' \
     '[{"application_layer_address":"9344887766555508"},]'; do
     printf '%s' "$content" > "$tmp/filter.json"
     if "$decoder" --filter "$tmp/filter.json" < /dev/null > "$tmp/output" 2> "$tmp/error"; then

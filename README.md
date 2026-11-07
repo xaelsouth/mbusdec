@@ -174,8 +174,9 @@ Filtering happens before decryption and record decoding. Malformed input,
 CRC failures, or headers that cannot be inspected still produce errors.
 The filter is read at startup and has the same 32768-byte and 128-entry
 limits as the key file. Invalid or missing filter files fail at startup.
-A key file can also be used as a filter, but its keys are ignored for
-decryption; use `--keys` separately.
+A key file can also be used as a filter: `key`, `keys`, and `type` values
+are ignored (but must be valid JSON) and are not used for decryption. Use
+`--keys` separately to validate and use keys; both options may name the same file.
 
 The [examples](examples/) directory contains historical JSON request and
 response pairs for a test-only fixture decoder, including wired and wireless telegrams, mode 5

@@ -39,12 +39,17 @@ enum parse_state { START, ARRAY_FIRST, ARRAY_ITEM, OBJECT_FIRST, OBJECT_FIELD,
                    ID_FIRST, ID_FIELD, ID_COLON, ID_VALUE, ID_AFTER };
 enum { HAS_ALA = 1, HAS_KEY = 2, HAS_TYPE = 4, HAS_KEYS = 8, HAS_LLA = 16 };
 enum { ID_SERIAL = 1, ID_DEVICE = 2, ID_VERSION = 4, ID_MANUFACTURER = 8 };
+enum skip_state { SKIP_ARRAY_FIRST, SKIP_ARRAY_VALUE, SKIP_ARRAY_AFTER,
+                  SKIP_OBJECT_FIRST, SKIP_OBJECT_KEY, SKIP_OBJECT_COLON,
+                  SKIP_OBJECT_VALUE, SKIP_OBJECT_AFTER };
 typedef struct {
     enum parse_state state;
     cli_key_store *store;
     cli_key_entry entry;
     unsigned seen, field, key_seen, id_seen, id_field, id_target;
     size_t entry_start;
+    enum skip_state skip[MJSON_MAX_DEPTH];
+    size_t skip_depth;
     int failed, filter;
 } parser;
 
@@ -96,9 +101,105 @@ static int identity_value(parser *p, int event, const char *s, int len)
                           1, &n) && n == 1;
 }
 
+static int json_string(const char *s, int len)
+{
+    int i;
+    if (len < 2 || s[0] != '"' || s[len - 1] != '"') return 0;
+    for (i = 1; i < len - 1; i++) {
+        unsigned char c = (unsigned char)s[i];
+        if (c < 0x20 || c == '"') return 0;
+        if (c == '\\') {
+            if (++i >= len - 1) return 0;
+            c = (unsigned char)s[i];
+            if (c == 'u') {
+                int j;
+                for (j = 0; j < 4; j++) {
+                    if (++i >= len - 1) return 0;
+                    c = (unsigned char)s[i];
+                    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
+                          (c >= 'A' && c <= 'F'))) return 0;
+                }
+            } else if (!strchr("\"\\/bfnrt", c)) return 0;
+        }
+    }
+    return 1;
+}
+
+static int json_number(const char *s, int len)
+{
+    int i = 0;
+    if (i < len && s[i] == '-') i++;
+    if (i == len) return 0;
+    if (s[i] == '0') i++;
+    else {
+        if (s[i] < '1' || s[i] > '9') return 0;
+        while (i < len && s[i] >= '0' && s[i] <= '9') i++;
+    }
+    if (i < len && s[i] == '.') {
+        i++;
+        if (i == len || s[i] < '0' || s[i] > '9') return 0;
+        while (i < len && s[i] >= '0' && s[i] <= '9') i++;
+    }
+    if (i < len && (s[i] == 'e' || s[i] == 'E')) {
+        i++;
+        if (i < len && (s[i] == '+' || s[i] == '-')) i++;
+        if (i == len || s[i] < '0' || s[i] > '9') return 0;
+        while (i < len && s[i] >= '0' && s[i] <= '9') i++;
+    }
+    return i == len;
+}
+
+static int skip_value(parser *p, int event, const char *s, int len)
+{
+    if (event == '[' || event == '{') {
+        if (p->skip_depth == MJSON_MAX_DEPTH) return 0;
+        p->skip[p->skip_depth++] = event == '[' ? SKIP_ARRAY_FIRST : SKIP_OBJECT_FIRST;
+        return 1;
+    }
+    if (event == MJSON_TOK_STRING) return json_string(s, len);
+    if (event == MJSON_TOK_NUMBER) return json_number(s, len);
+    return event == MJSON_TOK_TRUE || event == MJSON_TOK_FALSE || event == MJSON_TOK_NULL;
+}
+
+static int skip_event(parser *p, int event, const char *s, int len)
+{
+    enum skip_state *state = &p->skip[p->skip_depth - 1];
+    if ((*state == SKIP_ARRAY_FIRST && event == ']') ||
+        (*state == SKIP_ARRAY_AFTER && event == ']') ||
+        (*state == SKIP_OBJECT_FIRST && event == '}') ||
+        (*state == SKIP_OBJECT_AFTER && event == '}')) {
+        if (--p->skip_depth == 0) p->state = OBJECT_AFTER;
+        return 1;
+    }
+    if (*state == SKIP_ARRAY_FIRST || *state == SKIP_ARRAY_VALUE) {
+        *state = SKIP_ARRAY_AFTER;
+        return skip_value(p, event, s, len);
+    }
+    if (*state == SKIP_ARRAY_AFTER && event == ',') *state = SKIP_ARRAY_VALUE;
+    else if ((*state == SKIP_OBJECT_FIRST || *state == SKIP_OBJECT_KEY) &&
+             event == MJSON_TOK_KEY && json_string(s, len)) *state = SKIP_OBJECT_COLON;
+    else if (*state == SKIP_OBJECT_COLON && event == ':') *state = SKIP_OBJECT_VALUE;
+    else if (*state == SKIP_OBJECT_VALUE) {
+        *state = SKIP_OBJECT_AFTER;
+        return skip_value(p, event, s, len);
+    } else if (*state == SKIP_OBJECT_AFTER && event == ',') *state = SKIP_OBJECT_KEY;
+    else return 0;
+    return 1;
+}
+
 static int parse_event(int event, const char *s, int off, int len, void *data)
 {
     parser *p = data;
+    if (p->skip_depth) {
+        if (!skip_event(p, event, s + off, len)) goto invalid;
+        return 0;
+    }
+    if (p->filter && p->state == VALUE &&
+        (p->field == HAS_KEY || p->field == HAS_KEYS || p->field == HAS_TYPE)) {
+        if (!skip_value(p, event, s + off, len)) goto invalid;
+        if (!p->skip_depth) p->state = OBJECT_AFTER;
+        return 0;
+    }
     if (p->state == START && event == '[') p->state = ARRAY_FIRST;
     else if ((p->state == ARRAY_FIRST || p->state == ARRAY_ITEM) && event == '{') {
         memset(&p->entry, 0, sizeof(p->entry));
@@ -178,7 +279,7 @@ static int parse_event(int event, const char *s, int off, int len, void *data)
             memcpy(p->entry.address, p->entry.link_address, sizeof(p->entry.address));
             p->entry.has_link_constraint = 0;
         }
-        if (p->seen & HAS_KEYS) {
+        if (!p->filter && (p->seen & HAS_KEYS)) {
             if ((p->seen & (HAS_KEY | HAS_TYPE)) || p->store->count == p->entry_start)
                 goto invalid;
             for (i = p->entry_start; i < p->store->count; i++) {
@@ -190,7 +291,6 @@ static int parse_event(int event, const char *s, int off, int len, void *data)
             }
         } else {
             if ((!p->filter && !(p->seen & HAS_KEY)) ||
-                (p->filter && (p->seen & HAS_TYPE) && !(p->seen & HAS_KEY)) ||
                 p->store->count == CLI_MAX_KEY_ENTRIES)
                 goto invalid;
             p->store->entries[p->store->count++] = p->entry;
