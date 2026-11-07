@@ -18,13 +18,16 @@ For a commercially available alternative, DeviceLab offers
 [Payload Extractor](https://devicelab.dk/#payloadextractor), an on-premises
 wireless M-Bus and OMS decoder with an HTTP interface and integrated key store.
 
-The project is released under the Unlicense; see [LICENSE](LICENSE). Third-party
-bundled dependencies retain their own applicable terms:
-[tiny-AES-c](https://github.com/kokke/tiny-AES-c) supplies the default AES
-backend, and [mjson](https://github.com/cesanta/mjson) supports CLI JSON
-processing. Alternatively, select the external
+The project's own code is released under the Unlicense; see [LICENSE](LICENSE).
+Bundled third-party code retains its own terms:
+[tiny-AES-c](https://github.com/kokke/tiny-AES-c), the default AES backend, is
+also under the Unlicense. The CLI includes MIT-licensed
+[mjson](https://github.com/cesanta/mjson), so distributions containing it must
+include its [copyright and license notice](thirdparty/mjson/LICENSE). The
+core decoder library does not include mjson. Alternatively, select the external
 [OpenSSL](https://www.openssl.org/) AES backend with
-`-DMBUS_AES_BACKEND=openssl`.
+`-DMBUS_AES_BACKEND=openssl`; its applicable license depends on the OpenSSL
+version and must be considered when distributing it.
 
 Some OpenSSL FIPS modules have been validated, but selecting OpenSSL alone
 does not make this project FIPS compliant or certified. This implementation
