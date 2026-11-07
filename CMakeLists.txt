@@ -82,6 +82,10 @@ if(BUILD_TESTING)
     add_test(NAME real_telegrams COMMAND ${SH_EXECUTABLE}
              ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_real_telegrams.sh
              $<TARGET_FILE:test_fixture_decoder> ${JQ_EXECUTABLE})
+    add_test(NAME libmbus_telegrams COMMAND ${SH_EXECUTABLE}
+             ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_libmbus.sh
+             $<TARGET_FILE:test_fixture_decoder> ${JQ_EXECUTABLE}
+             ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/libmbus)
     add_test(NAME upstream_aes COMMAND ${SH_EXECUTABLE}
              ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_upstream_aes.sh
              $<TARGET_FILE:test_fixture_decoder> ${JQ_EXECUTABLE})

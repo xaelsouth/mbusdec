@@ -37,3 +37,12 @@ were removed for the test inputs.
 
 The historical line numbers in fixture filenames identify where examples were
 captured, not necessarily their current location in the test scripts.
+
+## libmbus test vectors
+
+The wired telegrams in [tests/fixtures/libmbus](../tests/fixtures/libmbus)
+come from [rSCADA libmbus test-frames](https://github.com/rscada/libmbus/tree/057ab6314d4067b0f75f3f6f067d741262d2d3de/test/test-frames)
+at revision `057ab6314d4067b0f75f3f6f067d741262d2d3de`. The associated
+upstream `.norm.xml` files (and `filler.xml`) supply the reference readings
+used by [test_libmbus.sh](../tests/test_libmbus.sh). Copyright belongs to
+Raditex Control AB and contributors; see the fixture [license](../tests/fixtures/libmbus/LICENSE).
