@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #define MBUS_MAX_TELEGRAM 261
+#define MBUS_MAX_RAW_WIRELESS 290
 #define MBUS_MAX_RECORDS 64
 #define MBUS_MAX_KEYS 16
 #define MBUS_MAX_PROFILE_VALUES 256
@@ -34,7 +35,9 @@ typedef struct {
 
 typedef enum {
     MBUS_WIRED,
-    MBUS_WIRELESS
+    MBUS_WIRELESS,
+    MBUS_WIRELESS_FORMAT_A,
+    MBUS_WIRELESS_FORMAT_B
 } mbus_format;
 
 typedef enum {
@@ -241,7 +244,25 @@ mbus_status mbus_unregister_manufacturer_decoder(uint16_t manufacturer);
 mbus_status mbus_set_key_provider(mbus_key_provider provider, void *context);
 
 /*
- * Decode a complete wired long frame or CRC-stripped wireless frame.
+ * Validate and remove link CRCs from a raw wireless Format A or B frame,
+ * starting at its L field (no preamble or sync word). format must be
+ * MBUS_WIRELESS_FORMAT_A or MBUS_WIRELESS_FORMAT_B. The normalized output
+ * starts with an L field excluding CRCs and can be passed as MBUS_WIRELESS.
+ * Input and output may overlap; out_length and error storage must not overlap
+ * either buffer. On failure output is unchanged and *out_length is zero.
+ * All pointers except error are required; error follows the same
+ * convention as mbus_decode. A valid link frame need not contain a decodable
+ * application telegram. CRC validation is not authentication.
+ */
+mbus_status mbus_wireless_remove_crc(const uint8_t *input, size_t length,
+                                     mbus_format format, uint8_t *output,
+                                     size_t capacity, size_t *out_length,
+                                     const char **error);
+
+/*
+ * Decode a complete wired long frame, CRC-stripped wireless frame, or raw
+ * wireless Format A/B frame. Raw wireless results have format MBUS_WIRELESS
+ * and offsets refer to the normalized CRC-stripped telegram.
  * The caller owns all buffers; telegram and result must not overlap.
  * error may be NULL. Otherwise it is cleared on entry and, on failure,
  * points to a static diagnostic string that must not be freed.
@@ -276,7 +297,8 @@ mbus_status mbus_get_identities(const uint8_t *telegram, size_t length,
 
 /*
  * Extract identities, extended-link control, and transport configuration
- * without decrypting. info is required and valid only on MBUS_OK.
+ * without decrypting. Raw wireless formats are CRC-validated first. info is
+ * required and valid only on MBUS_OK.
  */
 mbus_status mbus_get_header_info(const uint8_t *telegram, size_t length,
                                  mbus_format format, mbus_header_info *info,

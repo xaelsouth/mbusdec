@@ -373,6 +373,8 @@ API summary:
 * `mbus_decode_with_keys`: decode with up to `MBUS_MAX_KEYS` AES-128 keys,
   tried in order. A zero count permits a null key pointer. The two-byte
   verification is not authentication.
+* `mbus_wireless_remove_crc`: validate a raw Format A or B wireless link
+  frame and remove its CRCs without decoding its payload.
 * `mbus_set_key_provider`: install, replace, or remove (with `NULL`) a
   process-global key retrieval callback and its caller-owned context.
   Decoding calls it once after successful header parsing when the explicit
@@ -423,6 +425,50 @@ cc -std=c11 -Iinclude examples/key_provider.c build/libmbus.a -lm -o key_provide
 
 The output is `Decrypted telegram; profile values: 3`. For an OpenSSL build,
 add `-lcrypto` after the archive, as in the library example above.
+
+### Raw wireless Format A and B
+
+For receivers that provide link CRC bytes, pass `MBUS_WIRELESS_FORMAT_A` or
+`MBUS_WIRELESS_FORMAT_B` to `mbus_decode`, `mbus_decode_with_keys`,
+`mbus_get_header_info`, or `mbus_get_identities`. Input starts at the L byte
+and includes all link CRCs, but not a radio preamble, sync word or trailing
+bytes. The format must be known by the caller; it is not autodetected.
+Every link CRC and the exact frame length are validated before header parsing
+or calling a key provider. A failure returns `MBUS_INVALID` with a diagnostic.
+
+Alternatively, call `mbus_wireless_remove_crc` to validate and convert a frame
+without decoding it:
+
+```c
+uint8_t normalized[256];
+size_t normalized_length;
+const char *error = NULL;
+mbus_status status = mbus_wireless_remove_crc(
+    raw_frame, raw_length, MBUS_WIRELESS_FORMAT_A,
+    normalized, sizeof(normalized), &normalized_length, &error);
+if (status == MBUS_OK) {
+    status = mbus_decode(normalized, normalized_length, MBUS_WIRELESS,
+                         &result, &error);
+}
+```
+
+In this fragment `raw_frame`, `raw_length`, and `result` are supplied by the
+caller. Check `status` and `error` after either operation. The converter
+supports overlapping input and output buffers; its output remains unchanged
+on failure and the returned length is zero. It validates link framing, not
+the application payload. Format A has a CRC after its 10-byte first block and
+after each subsequent block of up to 16 bytes. Format B has one CRC for up to
+126 data bytes and, for longer frames, a second CRC for the remaining data.
+Format B's L field includes CRC bytes; the converter adjusts it to exclude
+them. The maximum raw input is `MBUS_MAX_RAW_WIRELESS` (290) bytes; normalized
+wireless output is at most 256 bytes. For raw decoding, `result.format` is
+`MBUS_WIRELESS`, and the result's telegram and offsets refer to normalized,
+CRC-stripped bytes. CRCs detect transmission errors but do not authenticate
+the sender or payload. This library API does not change rtl-wmbus CLI input,
+which remains CRC-stripped.
+The CRC lookup table is generated from the CRC-16/EN-13757 polynomial
+`0x3D65`; its calculation uses an initial value of zero and a final XOR
+of `0xFFFF`.
 
 All functions return `MBUS_OK`, `MBUS_INVALID`, `MBUS_UNSUPPORTED`, or
 `MBUS_LIMIT`. Their optional `const char **error` is cleared on entry and
@@ -526,10 +572,10 @@ Alternatively, install these files with `cmake --install build --prefix <directo
 
 * Wired long frames (`68 ... 16`), including length and checksum validation.
   Short, control and acknowledgement frames are not decoded.
-* Wireless frames **after the receiver has removed all link-layer CRC
-  bytes**, starting with the L field. The L field is checked, but link CRCs
-  cannot be verified from this representation. Radio preambles, raw CRC
-  blocks, fragmentation, and authentication are not supported. The unencrypted
+* Wireless frames starting with the L field, either CRC-stripped or raw
+  Format A/B including link CRCs via the library API. Link CRCs cannot be
+  verified when already stripped. Radio preambles, fragmentation, and
+  authentication are not supported. The unencrypted
   short extended-link header (CI `8C`) is supported; other extended-link
   variants, including ELL encryption, are not.
 * Full-frame responses with CI `78`, `7A`, or `72`, plus manufacturer-specific
@@ -584,8 +630,10 @@ example uses extended-link-layer AES-CTR and is explicitly tested as
 unsupported; the encrypted Apator example has a proprietary payload and is
 also unsupported.
 
-Library tests include wireless telegrams with their link CRCs removed,
-compact-profile records, and unsupported AFL authentication. A modified
+Library tests include raw Format A/B CRC validation and conversion, wireless
+telegrams with their link CRCs removed, compact-profile records, and unsupported
+AFL authentication. See [examples/README.md](examples/README.md) for raw
+vector provenance and distinctions between published and generated CRCs. A modified
 telegram with its counter moved to TPL and its MAC removed tests the mode 7
 KDF and decryption, not authentication.
 

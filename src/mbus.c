@@ -49,6 +49,23 @@ static int manufacturer_ci(uint8_t ci)
     return ci >= 0xa0 && ci <= 0xbf;
 }
 
+static mbus_status normalize_wireless(const uint8_t **telegram, size_t *length,
+                                      mbus_format *format, uint8_t *buffer,
+                                      const char **error)
+{
+    mbus_status status;
+    size_t normalized_length;
+    if (*format != MBUS_WIRELESS_FORMAT_A && *format != MBUS_WIRELESS_FORMAT_B)
+        return MBUS_OK;
+    status = mbus_wireless_remove_crc(*telegram, *length, *format, buffer,
+                                      256, &normalized_length, error);
+    if (status != MBUS_OK) return status;
+    *telegram = buffer;
+    *length = normalized_length;
+    *format = MBUS_WIRELESS;
+    return MBUS_OK;
+}
+
 static mbus_status read_headers(const uint8_t *telegram, size_t length,
                                 mbus_format format, mbus_result *result,
                                 size_t *payload, size_t *payload_end, const char **error)
@@ -124,11 +141,14 @@ mbus_status mbus_get_header_info(const uint8_t *telegram, size_t length,
                                  const char **error)
 {
     mbus_result headers;
+    uint8_t normalized[256];
     size_t pos, end;
     mbus_status status;
     if (error != NULL) *error = NULL;
     if (!telegram || !info)
         return mbus_fail(error, MBUS_INVALID, "null argument");
+    status = normalize_wireless(&telegram, &length, &format, normalized, error);
+    if (status != MBUS_OK) return status;
     if (length > MBUS_MAX_TELEGRAM)
         return mbus_fail(error, MBUS_LIMIT, "telegram exceeds maximum length");
     memset(&headers, 0, sizeof(headers));
@@ -172,11 +192,14 @@ mbus_status mbus_decode_with_keys(const uint8_t *telegram, size_t length,
     size_t pos, end;
     mbus_status status;
     mbus_key provided_keys[MBUS_MAX_KEYS];
+    uint8_t normalized[256];
     if (error != NULL) *error = NULL;
     if (telegram == NULL || result == NULL)
         return mbus_fail(error, MBUS_INVALID, "null argument");
     if (key_count > MBUS_MAX_KEYS || (key_count && keys == NULL))
         return mbus_fail(error, MBUS_INVALID, "invalid key list");
+    status = normalize_wireless(&telegram, &length, &format, normalized, error);
+    if (status != MBUS_OK) return status;
     if (length > MBUS_MAX_TELEGRAM)
         return mbus_fail(error, MBUS_LIMIT, "telegram exceeds maximum length");
     if (key_provider_active)

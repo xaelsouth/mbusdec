@@ -110,7 +110,8 @@ static inline mbus_synchronization mbus_header_sync(
     mbus_format format, int has_ell, uint8_t ell_control,
     int has_transport, uint16_t configuration)
 {
-    if (format != MBUS_WIRELESS)
+    if (format != MBUS_WIRELESS && format != MBUS_WIRELESS_FORMAT_A &&
+        format != MBUS_WIRELESS_FORMAT_B)
         return MBUS_SYNC_UNKNOWN;
     if (has_ell)
         return (ell_control & MBUS_ELL_SYNCHRONIZED) ?

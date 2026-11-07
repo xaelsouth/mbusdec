@@ -39,6 +39,22 @@ were removed for the test inputs.
 The historical line numbers in fixture filenames identify where examples were
 captured, not necessarily their current location in the test scripts.
 
+## Raw wireless CRC tests
+
+[test_wireless_crc.c](../tests/test_wireless_crc.c) uses a Format A frame
+from [wmbusmeters' simulation_dll_crcs.txt](https://github.com/wmbusmeters/wmbusmeters/blob/a523d014a17ca24aeb8fa26c285468175eb89fdd/simulations/simulation_dll_crcs.txt)
+and a two-CRC Format B frame from its
+[test_frame_b_trim.sh](https://github.com/wmbusmeters/wmbusmeters/blob/a523d014a17ca24aeb8fa26c285468175eb89fdd/tests/test_frame_b_trim.sh).
+The single-CRC Format B frame is the C1Short capture in its
+[generated_tests.xmq](https://github.com/wmbusmeters/wmbusmeters/blob/a523d014a17ca24aeb8fa26c285468175eb89fdd/tests/generated_tests.xmq).
+The latter contains an AFL header that this decoder does not support, so the
+test checks CRC conversion, not successful payload decoding. The tests also
+add locally generated Format A and B CRCs to the existing OMS Annex N.2.1
+CRC-stripped gas telegram and verify its decoded value; those CRCs are not
+claimed as published OMS vectors. Synthetic frames cover all representable
+data lengths and corrupt every byte. The libmbus fixtures below are wired,
+not raw wireless CRC vectors.
+
 ## libmbus test vectors
 
 The wired telegrams in [tests/fixtures/libmbus](../tests/fixtures/libmbus)

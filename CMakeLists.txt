@@ -5,7 +5,7 @@ include(GNUInstallDirs)
 
 set(MBUS_AES_BACKEND "bundled" CACHE STRING "AES backend: bundled or openssl")
 set_property(CACHE MBUS_AES_BACKEND PROPERTY STRINGS bundled openssl)
-add_library(mbus STATIC src/mbus.c src/mbus_records.c src/mbus_profile.c
+add_library(mbus STATIC src/mbus.c src/mbus_wireless_crc.c src/mbus_records.c src/mbus_profile.c
     src/mbus_security.c src/mbus_manufacturer.c)
 target_include_directories(mbus PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -54,6 +54,10 @@ if(BUILD_TESTING)
     target_link_libraries(test_mbus PRIVATE mbus)
     target_compile_definitions(test_mbus PRIVATE MBUS_EXPECTED_VERSION="${PROJECT_VERSION}")
     add_test(NAME library COMMAND test_mbus)
+
+    add_executable(test_wireless_crc tests/test_wireless_crc.c)
+    target_link_libraries(test_wireless_crc PRIVATE mbus)
+    add_test(NAME wireless_crc COMMAND test_wireless_crc)
 
     add_executable(test_key_provider tests/test_key_provider.c)
     target_link_libraries(test_key_provider PRIVATE mbus)
