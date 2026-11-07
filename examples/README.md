@@ -63,3 +63,15 @@ at revision `057ab6314d4067b0f75f3f6f067d741262d2d3de`. The associated
 upstream `.norm.xml` files (and `filler.xml`) supply the reference readings
 used by [test_libmbus.sh](../tests/test_libmbus.sh). Copyright belongs to
 Raditex Control AB and contributors; see the fixture [license](../tests/fixtures/libmbus/LICENSE).
+
+## Exmbus record tests
+
+[test_exmbus_records.sh](../tests/test_exmbus_records.sh) exercises two record
+byte sequences from Exmbus revision `01f5925a9754d5f66269916c99aeb4ca8b683212`,
+wrapped in synthetic wireless headers made for these tests:
+[error flags](https://github.com/tudborg/exmbus/blob/01f5925a9754d5f66269916c99aeb4ca8b683212/test/parser/apl/data_record/data_record_test.exs)
+and [a record-error VIFE](https://github.com/tudborg/exmbus/blob/01f5925a9754d5f66269916c99aeb4ca8b683212/test/parser/apl/data_record/unhandled_vife_test.exs).
+The tests are independently written, not copies of Exmbus test code. Exmbus is
+licensed under [Apache 2.0](https://github.com/tudborg/exmbus/blob/01f5925a9754d5f66269916c99aeb4ca8b683212/LICENSE).
+The second case checks mbusdec's current unsupported-record behavior, not
+Exmbus's decoded result.
