@@ -550,6 +550,28 @@ decoding (`src/mbus_records.c`), compact profiles (`src/mbus_profile.c`), and
 AES/security handling (`src/mbus_security.c`). Private headers are in
 `include/private`; applications only need the public `include/mbus.h`.
 
+### Memory management and thread use
+
+The library never allocates, frees, or keeps pointers to caller memory beyond
+a call. All storage is fixed-size and caller-owned:
+
+* `mbus_context` (about 0.8 KB) holds the key provider and manufacturer
+  decoder table. `mbus_result` (about 30 KB) embeds the telegram copy,
+  records, profile values and manufacturer data. Place them on the stack,
+  statically, or on the heap; on small targets make `mbus_result` static.
+* Capacity is fixed at compile time (see the limits below). Exceeding one
+  returns `MBUS_LIMIT` instead of growing a buffer.
+* `quantity`, `unit` and error strings point to static literals and need no
+  freeing. Decrypted bytes replace ciphertext in `result->telegram`; the input
+  buffer is not modified. Temporary keys and AES state are cleared after use.
+* The library has no mutable global or function-local static state and calls
+  only reentrant C library functions (`memcpy`, `memmove`, `memset`, `memcmp`,
+  `pow`, `snprintf`); the `reentrant` test checks both on the built archive
+  (default bundled-AES build).
+* Contexts share nothing, so separate contexts may be used concurrently. Use
+  each context from one thread at a time: give every thread its own context
+  rather than sharing one.
+
 Neither the library nor the CLI explicitly allocates memory dynamically. The
 caller supplies the result storage; the CLI uses static buffers. The C runtime
 and standard I/O implementation may allocate internally. Both AES backends
