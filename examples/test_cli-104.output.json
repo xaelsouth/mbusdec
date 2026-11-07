@@ -1,0 +1,4 @@
+{
+  "error": "security mode 5 requires an AES key",
+  "code": "unsupported"
+}

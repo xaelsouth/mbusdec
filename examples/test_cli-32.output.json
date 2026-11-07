@@ -1,0 +1,50 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "transport_identity": {
+    "serial_no": 21436587,
+    "manufacturer": "DQT",
+    "version": "02",
+    "device_type": "04"
+  },
+  "primary_identity_layer": "application",
+  "primary_identity": {
+    "serial_no": 21436587,
+    "manufacturer": "DQT",
+    "version": "02",
+    "device_type": "04"
+  },
+  "ci": "72",
+  "access_number": 3,
+  "status": 4,
+  "configuration": 0,
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "01",
+          "vif": "03",
+          "record_hex": "010312",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 18,
+          "raw_value": 18
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

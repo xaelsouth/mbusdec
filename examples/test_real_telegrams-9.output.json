@@ -1,0 +1,57 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 33225544,
+    "manufacturer": "SEN",
+    "version": "99",
+    "device_type": "07"
+  },
+  "transport_identity": null,
+  "primary_identity_layer": "link",
+  "primary_identity": {
+    "serial_no": 33225544,
+    "manufacturer": "SEN",
+    "version": "99",
+    "device_type": "07"
+  },
+  "ci": "7A",
+  "access_number": 85,
+  "status": 0,
+  "configuration": 0,
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "13",
+          "record_hex": "041389E20100",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -3,
+          "value": 123.529,
+          "raw_value": 123529
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "3B",
+          "record_hex": "023B0000",
+          "quantity": "volume_flow",
+          "unit": "m3/h",
+          "exponent": -3,
+          "value": 0,
+          "raw_value": 0
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

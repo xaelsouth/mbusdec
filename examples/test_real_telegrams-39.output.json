@@ -1,0 +1,138 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "QDS",
+    "version": "35",
+    "device_type": "08"
+  },
+  "transport_identity": null,
+  "primary_identity_layer": "link",
+  "primary_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "QDS",
+    "version": "35",
+    "device_type": "08"
+  },
+  "ci": "7A",
+  "access_number": 116,
+  "status": 0,
+  "configuration": 8192,
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "0B",
+          "vif": "6E",
+          "record_hex": "0B6E270100",
+          "quantity": "heat_cost_allocation",
+          "unit": "1",
+          "exponent": 0,
+          "value": 127,
+          "raw_value": 127
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "6D",
+          "record_hex": "046D200B7422",
+          "quantity": "date_time",
+          "unit": "1",
+          "exponent": 0,
+          "value": "2019-02-20T11:32"
+        }
+      ]
+    },
+    {
+      "storage": 1,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "4B",
+          "vif": "6E",
+          "record_hex": "4B6E450100",
+          "quantity": "heat_cost_allocation",
+          "unit": "1",
+          "exponent": 0,
+          "value": 145,
+          "raw_value": 145
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "42",
+          "vif": "6C",
+          "record_hex": "426C5F2C",
+          "quantity": "date",
+          "unit": "1",
+          "exponent": 0,
+          "value": "2018-12-31"
+        }
+      ]
+    },
+    {
+      "storage": 17,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "CB",
+          "vif": "6E",
+          "record_hex": "CB086E790000",
+          "quantity": "heat_cost_allocation",
+          "unit": "1",
+          "exponent": 0,
+          "value": 79,
+          "raw_value": 79
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "C2",
+          "vif": "6C",
+          "record_hex": "C2086C7F21",
+          "quantity": "date",
+          "unit": "1",
+          "exponent": 0,
+          "value": "2019-01-31"
+        }
+      ]
+    },
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "error",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "error",
+          "subunit": 0,
+          "dif": "32",
+          "vif": "6C",
+          "record_hex": "326CFFFF",
+          "quantity": "date",
+          "unit": "1",
+          "exponent": 0,
+          "value": null,
+          "valid": false
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

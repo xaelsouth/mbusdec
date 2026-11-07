@@ -1,0 +1,163 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "transport_identity": null,
+  "primary_identity_layer": "link",
+  "primary_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "ci": "78",
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "01",
+          "vif": "03",
+          "record_hex": "010301",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 1,
+          "raw_value": 1
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "01",
+          "vif": "6C",
+          "record_hex": "016C05",
+          "status": "unsupported",
+          "value": null
+        }
+      ]
+    },
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "maximum",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "maximum",
+          "subunit": 0,
+          "dif": "11",
+          "vif": "03",
+          "record_hex": "110302",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 2,
+          "raw_value": 2
+        },
+        {
+          "function": "maximum",
+          "subunit": 0,
+          "dif": "11",
+          "vif": "03",
+          "record_hex": "110306",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 6,
+          "raw_value": 6
+        }
+      ]
+    },
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "minimum",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "minimum",
+          "subunit": 0,
+          "dif": "21",
+          "vif": "03",
+          "record_hex": "210303",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 3,
+          "raw_value": 3
+        }
+      ]
+    },
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "error",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "error",
+          "subunit": 0,
+          "dif": "31",
+          "vif": "03",
+          "record_hex": "310304",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 4,
+          "raw_value": 4
+        }
+      ]
+    },
+    {
+      "storage": 1,
+      "tariff": 1,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "C1",
+          "vif": "03",
+          "record_hex": "C1100307",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 7,
+          "raw_value": 7
+        }
+      ]
+    },
+    {
+      "storage": 0,
+      "tariff": 1,
+      "function": "instantaneous",
+      "subunit": 1,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 1,
+          "dif": "81",
+          "vif": "03",
+          "record_hex": "81500308",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 8,
+          "raw_value": 8
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

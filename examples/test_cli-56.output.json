@@ -1,0 +1,94 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "transport_identity": null,
+  "primary_identity_layer": "link",
+  "primary_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "ci": "78",
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "01",
+          "vif": "03",
+          "record_hex": "010301",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 1,
+          "raw_value": 1
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "01",
+          "vif": "03",
+          "record_hex": "010304",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 4,
+          "raw_value": 4
+        }
+      ]
+    },
+    {
+      "storage": 1,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "41",
+          "vif": "03",
+          "record_hex": "410302",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 2,
+          "raw_value": 2
+        }
+      ]
+    },
+    {
+      "storage": 0,
+      "tariff": 1,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "81",
+          "vif": "03",
+          "record_hex": "81100303",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 3,
+          "raw_value": 3
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

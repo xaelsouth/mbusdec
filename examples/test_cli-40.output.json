@@ -1,0 +1,104 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 11223344,
+    "manufacturer": "QDS",
+    "version": "55",
+    "device_type": "37"
+  },
+  "transport_identity": {
+    "serial_no": 55667788,
+    "manufacturer": "QDS",
+    "version": "55",
+    "device_type": "08"
+  },
+  "primary_identity_layer": "application",
+  "primary_identity": {
+    "serial_no": 55667788,
+    "manufacturer": "QDS",
+    "version": "55",
+    "device_type": "08"
+  },
+  "extended_link": {
+    "ci": "8C",
+    "control": 0,
+    "access_number": 117
+  },
+  "ci": "72",
+  "access_number": 0,
+  "status": 4,
+  "configuration": 1296,
+  "decrypted": true,
+  "authenticated": false,
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "0B",
+          "vif": "6E",
+          "record_hex": "0B6E341200",
+          "quantity": "heat_cost_allocation",
+          "unit": "1",
+          "exponent": 0,
+          "value": 1234,
+          "raw_value": 1234
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "0C",
+          "vif": "FD",
+          "record_hex": "0CFD1078563412",
+          "vife": "10",
+          "vifes": [
+            "10"
+          ],
+          "quantity": "customer_location",
+          "unit": "1",
+          "exponent": 0,
+          "value": 12345678,
+          "raw_value": 12345678
+        }
+      ]
+    },
+    {
+      "storage": 1,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "42",
+          "vif": "6C",
+          "record_hex": "426CFE04",
+          "quantity": "date",
+          "unit": "1",
+          "exponent": 0,
+          "value": "2007-04-30"
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "4B",
+          "vif": "6E",
+          "record_hex": "4B6E563402",
+          "quantity": "heat_cost_allocation",
+          "unit": "1",
+          "exponent": 0,
+          "value": 23456,
+          "raw_value": 23456
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

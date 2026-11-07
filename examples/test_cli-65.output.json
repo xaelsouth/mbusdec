@@ -1,0 +1,93 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "transport_identity": null,
+  "primary_identity_layer": "link",
+  "primary_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "ci": "78",
+  "groups": [
+    {
+      "storage": 8,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "84",
+          "vif": "6D",
+          "record_hex": "84046D00234111",
+          "quantity": "date_time",
+          "unit": "1",
+          "exponent": 0,
+          "value": "2010-01-01T03:00"
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "8B",
+          "vif": "15",
+          "record_hex": "8B0415163012",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -1,
+          "value": 12301.6,
+          "raw_value": 123016
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "8D",
+          "vif": "95",
+          "record_hex": "8D049513056901110203",
+          "vife": "13",
+          "vifes": [
+            "13"
+          ],
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -1,
+          "profile": {
+            "kind": "inverse",
+            "control": 105,
+            "interval": 1,
+            "interval_unit": "h",
+            "interval_raw": 1,
+            "base_record_index": 1,
+            "values": [
+              {
+                "value": 12300.5,
+                "raw_value": 11,
+                "decoded_integer": 123005
+              },
+              {
+                "value": 12300.300000000001,
+                "raw_value": 2,
+                "decoded_integer": 123003
+              },
+              {
+                "value": 12300,
+                "raw_value": 3,
+                "decoded_integer": 123000
+              }
+            ]
+          },
+          "value": null
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

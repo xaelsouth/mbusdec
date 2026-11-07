@@ -1,0 +1,92 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "transport_identity": null,
+  "primary_identity_layer": "link",
+  "primary_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "ci": "78",
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "01",
+          "vif": "03",
+          "record_hex": "010301",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 1,
+          "raw_value": 1
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "6F",
+          "record_hex": "026F1234",
+          "status": "unsupported",
+          "value": null
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "0D",
+          "vif": "03",
+          "record_hex": "0D0302AABB",
+          "status": "unsupported",
+          "value": null
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "01",
+          "vif": "03",
+          "record_hex": "010303",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 3,
+          "raw_value": 3
+        }
+      ]
+    },
+    {
+      "storage": 0,
+      "tariff": 1,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "81",
+          "vif": "03",
+          "record_hex": "81100302",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 2,
+          "raw_value": 2
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

@@ -1,0 +1,348 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 61070071,
+    "manufacturer": "AAA",
+    "version": "25",
+    "device_type": "07"
+  },
+  "transport_identity": {
+    "serial_no": 61070071,
+    "manufacturer": "AAA",
+    "version": "25",
+    "device_type": "07"
+  },
+  "primary_identity_layer": "application",
+  "primary_identity": {
+    "serial_no": 61070071,
+    "manufacturer": "AAA",
+    "version": "25",
+    "device_type": "07"
+  },
+  "ci": "72",
+  "access_number": 181,
+  "status": 0,
+  "configuration": 1376,
+  "decrypted": true,
+  "authenticated": false,
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "13",
+          "record_hex": "0413281E0700",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -3,
+          "value": 466.47200000000004,
+          "raw_value": 466472
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "FD",
+          "record_hex": "02FD170000",
+          "vife": "17",
+          "vifes": [
+            "17"
+          ],
+          "quantity": "error_flags",
+          "unit": "1",
+          "exponent": 0,
+          "value": 0,
+          "raw_value": 0
+        }
+      ]
+    },
+    {
+      "storage": 1,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "43",
+          "vif": "14",
+          "record_hex": "431404B600",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 465.96000000000004,
+          "raw_value": 46596
+        }
+      ]
+    },
+    {
+      "storage": 2,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "83",
+          "vif": "14",
+          "record_hex": "83011440B300",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 458.88,
+          "raw_value": 45888
+        }
+      ]
+    },
+    {
+      "storage": 3,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "C3",
+          "vif": "14",
+          "record_hex": "C30114A5AF00",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 449.65000000000003,
+          "raw_value": 44965
+        }
+      ]
+    },
+    {
+      "storage": 4,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "83",
+          "vif": "14",
+          "record_hex": "830214CBAC00",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 442.35000000000002,
+          "raw_value": 44235
+        }
+      ]
+    },
+    {
+      "storage": 5,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "C3",
+          "vif": "14",
+          "record_hex": "C3021463A800",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 431.06999999999999,
+          "raw_value": 43107
+        }
+      ]
+    },
+    {
+      "storage": 6,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "83",
+          "vif": "14",
+          "record_hex": "8303149EA500",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 423.98000000000002,
+          "raw_value": 42398
+        }
+      ]
+    },
+    {
+      "storage": 7,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "C3",
+          "vif": "14",
+          "record_hex": "C3031433A200",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 415.23000000000002,
+          "raw_value": 41523
+        }
+      ]
+    },
+    {
+      "storage": 8,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "83",
+          "vif": "14",
+          "record_hex": "830414C79F00",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 409.03000000000003,
+          "raw_value": 40903
+        }
+      ]
+    },
+    {
+      "storage": 9,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "C3",
+          "vif": "14",
+          "record_hex": "C304148F9C00",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 400.79000000000002,
+          "raw_value": 40079
+        }
+      ]
+    },
+    {
+      "storage": 10,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "83",
+          "vif": "14",
+          "record_hex": "830514989900",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 393.19999999999999,
+          "raw_value": 39320
+        }
+      ]
+    },
+    {
+      "storage": 11,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "C3",
+          "vif": "14",
+          "record_hex": "C30514CF9700",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 388.63,
+          "raw_value": 38863
+        }
+      ]
+    },
+    {
+      "storage": 12,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "83",
+          "vif": "14",
+          "record_hex": "830614269400",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 379.25999999999999,
+          "raw_value": 37926
+        }
+      ]
+    },
+    {
+      "storage": 13,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "C3",
+          "vif": "14",
+          "record_hex": "C30614069100",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 371.25999999999999,
+          "raw_value": 37126
+        }
+      ]
+    },
+    {
+      "storage": 14,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "83",
+          "vif": "14",
+          "record_hex": "830714C88B00",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -2,
+          "value": 357.84000000000003,
+          "raw_value": 35784
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

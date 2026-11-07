@@ -1,0 +1,66 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "transport_identity": null,
+  "primary_identity_layer": "link",
+  "primary_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "ci": "78",
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "02",
+          "record_hex": "0202D204",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": -1,
+          "value": 123.40000000000001,
+          "raw_value": 1234
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "15",
+          "record_hex": "02152E16",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -1,
+          "value": 567.80000000000007,
+          "raw_value": 5678
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "2A",
+          "record_hex": "022A3423",
+          "quantity": "power",
+          "unit": "W",
+          "exponent": -1,
+          "value": 901.20000000000005,
+          "raw_value": 9012
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

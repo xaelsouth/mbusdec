@@ -1,0 +1,4 @@
+{
+  "error": "security mode 7 requires an AFL message counter",
+  "code": "unsupported"
+}

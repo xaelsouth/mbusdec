@@ -1,0 +1,95 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 66666666,
+    "manufacturer": "ELV",
+    "version": "20",
+    "device_type": "1B"
+  },
+  "transport_identity": null,
+  "primary_identity_layer": "link",
+  "primary_identity": {
+    "serial_no": 66666666,
+    "manufacturer": "ELV",
+    "version": "20",
+    "device_type": "1B"
+  },
+  "ci": "7A",
+  "access_number": 249,
+  "status": 0,
+  "configuration": 8192,
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "65",
+          "record_hex": "02651E09",
+          "quantity": "external_temperature",
+          "unit": "degC",
+          "exponent": -2,
+          "value": 23.34,
+          "raw_value": 2334
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "FD",
+          "record_hex": "02FD1B3003",
+          "vife": "1B",
+          "vifes": [
+            "1B"
+          ],
+          "status": "unsupported",
+          "value": null
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "0D",
+          "vif": "FD",
+          "record_hex": "0DFD0F05302E302E34",
+          "vife": "0F",
+          "vifes": [
+            "0F"
+          ],
+          "status": "unsupported",
+          "value": null
+        }
+      ]
+    },
+    {
+      "storage": 1,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "42",
+          "vif": "65",
+          "record_hex": "42651809",
+          "quantity": "external_temperature",
+          "unit": "degC",
+          "exponent": -2,
+          "value": 23.280000000000001,
+          "raw_value": 2328
+        }
+      ]
+    }
+  ],
+  "more_records": false,
+  "manufacturer_data": "",
+  "manufacturer_data_status": "undecoded",
+  "manufacturer_data_manufacturer": "ELV",
+  "manufacturer_data_kind": "dif"
+}

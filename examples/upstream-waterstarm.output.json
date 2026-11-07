@@ -1,0 +1,119 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 20096221,
+    "manufacturer": "DWZ",
+    "version": "02",
+    "device_type": "06"
+  },
+  "transport_identity": null,
+  "primary_identity_layer": "link",
+  "primary_identity": {
+    "serial_no": 20096221,
+    "manufacturer": "DWZ",
+    "version": "02",
+    "device_type": "06"
+  },
+  "ci": "7A",
+  "access_number": 54,
+  "status": 0,
+  "configuration": 9504,
+  "decrypted": true,
+  "authenticated": false,
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "6D",
+          "record_hex": "046D282A9E27",
+          "quantity": "date_time",
+          "unit": "1",
+          "exponent": 0,
+          "value": "2020-07-30T10:40"
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "13",
+          "record_hex": "04136A000000",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -3,
+          "value": 0.106,
+          "raw_value": 106
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "FD",
+          "record_hex": "02FD170000",
+          "vife": "17",
+          "vifes": [
+            "17"
+          ],
+          "quantity": "error_flags",
+          "unit": "1",
+          "exponent": 0,
+          "value": 0,
+          "raw_value": 0
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "93",
+          "record_hex": "04933C00000000",
+          "vife": "3C",
+          "vifes": [
+            "3C"
+          ],
+          "modifiers": [
+            "backward_flow"
+          ],
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -3,
+          "value": 0,
+          "raw_value": 0
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "03",
+          "vif": "FD",
+          "record_hex": "03FD0C080000",
+          "vife": "0C",
+          "vifes": [
+            "0C"
+          ],
+          "status": "unsupported",
+          "value": null
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "FD",
+          "record_hex": "02FD0B0011",
+          "vife": "0B",
+          "vifes": [
+            "0B"
+          ],
+          "status": "unsupported",
+          "value": null
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

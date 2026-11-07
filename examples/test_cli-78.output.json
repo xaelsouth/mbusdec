@@ -1,0 +1,79 @@
+{
+  "format": "wireless",
+  "control": "44",
+  "link_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "transport_identity": null,
+  "primary_identity_layer": "link",
+  "primary_identity": {
+    "serial_no": 78563412,
+    "manufacturer": "KAM",
+    "version": "01",
+    "device_type": "07"
+  },
+  "ci": "78",
+  "groups": [
+    {
+      "storage": 32,
+      "tariff": 1,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "84",
+          "vif": "03",
+          "record_hex": "8490810003F0490200",
+          "storage_is_register": true,
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "value": 150000,
+          "raw_value": 150000
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "8D",
+          "vif": "83",
+          "record_hex": "8D908100831E0A34FEA0860100D0FB0100",
+          "storage_is_register": true,
+          "vife": "1E",
+          "vifes": [
+            "1E"
+          ],
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 0,
+          "profile": {
+            "kind": "register",
+            "control": 52,
+            "interval": 1,
+            "interval_unit": "month",
+            "interval_raw": 254,
+            "base_record_index": 0,
+            "values": [
+              {
+                "value": 100000,
+                "raw_value": 100000,
+                "decoded_integer": 100000
+              },
+              {
+                "value": 130000,
+                "raw_value": 130000,
+                "decoded_integer": 130000
+              }
+            ]
+          },
+          "value": null
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}

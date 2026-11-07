@@ -1,0 +1,360 @@
+{
+  "format": "wired",
+  "control": "08",
+  "address": 0,
+  "link_identity": null,
+  "transport_identity": {
+    "serial_no": 10484075,
+    "manufacturer": "EFE",
+    "version": "00",
+    "device_type": "04"
+  },
+  "primary_identity_layer": "application",
+  "primary_identity": {
+    "serial_no": 10484075,
+    "manufacturer": "EFE",
+    "version": "00",
+    "device_type": "04"
+  },
+  "ci": "72",
+  "access_number": 49,
+  "status": 39,
+  "configuration": 0,
+  "groups": [
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "78",
+          "record_hex": "04786BF99F00",
+          "quantity": "fabrication_number",
+          "unit": "1",
+          "exponent": 0,
+          "value": 10484075,
+          "raw_value": 10484075
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "6D",
+          "record_hex": "046D040F632B",
+          "quantity": "date_time",
+          "unit": "1",
+          "exponent": 0,
+          "value": "2019-11-03T15:04"
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "15",
+          "record_hex": "0415E0200000",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -1,
+          "value": 841.60000000000002,
+          "raw_value": 8416
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "06",
+          "record_hex": "0406A0210000",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 3,
+          "value": 8608000,
+          "raw_value": 8608
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "6C",
+          "record_hex": "026C7F2C",
+          "quantity": "date",
+          "unit": "1",
+          "exponent": 0,
+          "value": "2019-12-31"
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "3B",
+          "record_hex": "043B00000000",
+          "quantity": "volume_flow",
+          "unit": "m3/h",
+          "exponent": -3,
+          "value": 0,
+          "raw_value": 0
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "2B",
+          "record_hex": "042B00000000",
+          "quantity": "power",
+          "unit": "W",
+          "exponent": 0,
+          "value": 0,
+          "raw_value": 0
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "5B",
+          "record_hex": "025B1800",
+          "quantity": "flow_temperature",
+          "unit": "degC",
+          "exponent": 0,
+          "value": 24,
+          "raw_value": 24
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "5F",
+          "record_hex": "025F1700",
+          "quantity": "return_temperature",
+          "unit": "degC",
+          "exponent": 0,
+          "value": 23,
+          "raw_value": 23
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "61",
+          "record_hex": "046138000000",
+          "quantity": "temperature_difference",
+          "unit": "K",
+          "exponent": -2,
+          "value": 0.56000000000000005,
+          "raw_value": 56
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "02",
+          "vif": "23",
+          "record_hex": "0223810C",
+          "quantity": "on_time",
+          "unit": "d",
+          "exponent": 0,
+          "value": 3201,
+          "raw_value": 3201
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "01",
+          "vif": "FD",
+          "record_hex": "01FD1700",
+          "vife": "17",
+          "vifes": [
+            "17"
+          ],
+          "quantity": "error_flags",
+          "unit": "1",
+          "exponent": 0,
+          "value": 0,
+          "raw_value": 0
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "04",
+          "vif": "90",
+          "record_hex": "0490280B000000",
+          "vife": "28",
+          "vifes": [
+            "28"
+          ],
+          "status": "unsupported",
+          "value": null
+        }
+      ]
+    },
+    {
+      "storage": 1,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "44",
+          "vif": "15",
+          "record_hex": "4415E0200000",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -1,
+          "value": 841.60000000000002,
+          "raw_value": 8416
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "44",
+          "vif": "06",
+          "record_hex": "4406A0210000",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 3,
+          "value": 8608000,
+          "raw_value": 8608
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "42",
+          "vif": "6C",
+          "record_hex": "426C5F2C",
+          "quantity": "date",
+          "unit": "1",
+          "exponent": 0,
+          "value": "2018-12-31"
+        }
+      ]
+    },
+    {
+      "storage": 2,
+      "tariff": 0,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "84",
+          "vif": "15",
+          "record_hex": "840115E0200000",
+          "quantity": "volume",
+          "unit": "m3",
+          "exponent": -1,
+          "value": 841.60000000000002,
+          "raw_value": 8416
+        },
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "84",
+          "vif": "06",
+          "record_hex": "840106A0210000",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 3,
+          "value": 8608000,
+          "raw_value": 8608
+        }
+      ]
+    },
+    {
+      "storage": 0,
+      "tariff": 1,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "84",
+          "vif": "06",
+          "record_hex": "84100600000000",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 3,
+          "value": 0,
+          "raw_value": 0
+        }
+      ]
+    },
+    {
+      "storage": 1,
+      "tariff": 1,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "C4",
+          "vif": "06",
+          "record_hex": "C4100600000000",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 3,
+          "value": 0,
+          "raw_value": 0
+        }
+      ]
+    },
+    {
+      "storage": 2,
+      "tariff": 1,
+      "function": "instantaneous",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "instantaneous",
+          "subunit": 0,
+          "dif": "84",
+          "vif": "06",
+          "record_hex": "84110600000000",
+          "quantity": "energy",
+          "unit": "Wh",
+          "exponent": 3,
+          "value": 0,
+          "raw_value": 0
+        }
+      ]
+    },
+    {
+      "storage": 0,
+      "tariff": 0,
+      "function": "maximum",
+      "subunit": 0,
+      "records": [
+        {
+          "function": "maximum",
+          "subunit": 0,
+          "dif": "14",
+          "vif": "3B",
+          "record_hex": "143B08010000",
+          "quantity": "volume_flow",
+          "unit": "m3/h",
+          "exponent": -3,
+          "value": 0.26400000000000001,
+          "raw_value": 264
+        },
+        {
+          "function": "maximum",
+          "subunit": 0,
+          "dif": "14",
+          "vif": "2B",
+          "record_hex": "142B39240000",
+          "quantity": "power",
+          "unit": "W",
+          "exponent": 0,
+          "value": 9273,
+          "raw_value": 9273
+        }
+      ]
+    }
+  ],
+  "more_records": false
+}
