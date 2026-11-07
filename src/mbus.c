@@ -27,6 +27,20 @@ const char *mbus_version(void)
     return MBUS_BUILD_VERSION;
 }
 
+uint16_t mbus_manufacturer_code(const char *text)
+{
+    uint16_t code = 0;
+    size_t i;
+    if (text == NULL)
+        return MBUS_MANUFACTURER_INVALID;
+    for (i = 0; i < 3; i++) {
+        if (text[i] < 'A' || text[i] > 'Z')
+            return MBUS_MANUFACTURER_INVALID;
+        code = (uint16_t)((code << 5) | (unsigned)(text[i] - 'A' + 1));
+    }
+    return text[3] == '\0' ? code : MBUS_MANUFACTURER_INVALID;
+}
+
 static void identity(mbus_identity *id, const uint8_t *p)
 {
     memcpy(id->identification, p, 4);

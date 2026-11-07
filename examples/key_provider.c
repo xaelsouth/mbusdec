@@ -12,7 +12,8 @@ static mbus_status lookup_key(const mbus_identity *application,
     const mbus_key *test_key = context;
     const uint8_t expected_id[] = {0x44, 0x55, 0x22, 0x33};
     *count = 0;
-    if (application == NULL && link != NULL && link->manufacturer == 0x4cae &&
+    if (application == NULL && link != NULL &&
+        link->manufacturer == MANUF_CODE("SEN") &&
         memcmp(link->identification, expected_id, sizeof(expected_id)) == 0 &&
         link->version == 0x99 && link->medium == 0x07 &&
         synchronization == MBUS_ASYNCHRONOUS) {

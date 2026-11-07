@@ -85,13 +85,13 @@ static int identity_value(parser *p, int event, const char *s, int len)
     }
     if (event != MJSON_TOK_STRING) return 0;
     if (p->id_field == ID_MANUFACTURER) {
-        unsigned code = 0;
-        int i;
+        uint16_t code;
+        char name[4];
         if (len != 5) return 0;
-        for (i = 1; i <= 3; i++) {
-            if (s[i] < 'A' || s[i] > 'Z') return 0;
-            code = (code << 5) | (unsigned)(s[i] - 'A' + 1);
-        }
+        memcpy(name, s + 1, 3);
+        name[3] = '\0';
+        code = MANUF_CODE(name);
+        if (code == MBUS_MANUFACTURER_INVALID) return 0;
         address[0] = (uint8_t)code;
         address[1] = (uint8_t)(code >> 8);
         return 1;

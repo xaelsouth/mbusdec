@@ -366,6 +366,13 @@ and `vifes[0]` to access the first extension. The CLI's `vife` and
 
 API summary:
 
+* `MANUF_CODE("TCH")`: encode exactly three uppercase letters
+  into a 15-bit manufacturer code (here `0x5068`). The macro calls
+  `mbus_manufacturer_code` and evaluates its argument once. Invalid strings
+  and `NULL` return `MBUS_MANUFACTURER_INVALID` (zero); check this before
+  using untrusted input. The conversion is a runtime expression, not a C
+  constant expression. For example, use it when registering a manufacturer
+  decoder or comparing `mbus_identity.manufacturer`.
 * `mbus_version`: return the library's CMake project version as a
   NUL-terminated string, for example `"0.1.0"`. The string has static
   lifetime, is read-only, and must not be freed.

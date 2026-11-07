@@ -721,6 +721,18 @@ static void random_inputs(void)
 int main(void)
 {
     const char *version = mbus_version();
+    const char *names[] = {"TCH", "QDS"};
+    size_t i = 0;
+    assert(MANUF_CODE(names[i++]) == 0x5068 && i == 1);
+    assert(MANUF_CODE("QDS") == 0x4493);
+    assert(MANUF_CODE("AAA") == 0x0421);
+    assert(MANUF_CODE("ZZZ") == 0x6b5a);
+    assert(MANUF_CODE(NULL) == MBUS_MANUFACTURER_INVALID);
+    assert(MANUF_CODE("") == MBUS_MANUFACTURER_INVALID);
+    assert(MANUF_CODE("TC") == MBUS_MANUFACTURER_INVALID);
+    assert(MANUF_CODE("TCHX") == MBUS_MANUFACTURER_INVALID);
+    assert(MANUF_CODE("Tch") == MBUS_MANUFACTURER_INVALID);
+    assert(MANUF_CODE("TC1") == MBUS_MANUFACTURER_INVALID);
     assert(version != NULL && strcmp(version, MBUS_EXPECTED_VERSION) == 0);
     assert(mbus_version() == version);
     example();

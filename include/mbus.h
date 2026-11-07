@@ -11,6 +11,15 @@
 #define MBUS_MAX_PROFILE_VALUES 256
 #define MBUS_MAX_MANUFACTURER_DECODERS 32
 
+/*
+ * Encode exactly three uppercase ASCII letters as a 15-bit M-Bus manufacturer
+ * code. Returns MBUS_MANUFACTURER_INVALID for NULL or invalid input. This
+ * runtime expression evaluates its argument once; it is not a C constant
+ * expression.
+ */
+#define MBUS_MANUFACTURER_INVALID 0
+#define MANUF_CODE(text) mbus_manufacturer_code(text)
+
 enum {
     MBUS_MODIFIER_AVERAGE = 1U << 0,
     MBUS_MODIFIER_MEASUREMENT_CONDITIONS = 1U << 1,
@@ -222,6 +231,8 @@ struct mbus_result {
  * The returned pointer refers to static storage and must not be freed.
  */
 const char *mbus_version(void);
+
+uint16_t mbus_manufacturer_code(const char *text);
 
 /*
  * Register one process-global manufacturer decoder. Registrations are

@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-/* These formats and this use of manufacturer code 0x2c2d are illustrative. */
-enum { EXAMPLE_MANUFACTURER = 0x2c2d };
 
 typedef struct {
     double multiplier;
@@ -86,10 +84,11 @@ int main(void)
     };
     static mbus_result result;
     example_context context = {2.0};
+    uint16_t example_manufacturer = MANUF_CODE("KAM");
     mbus_status status;
     int ok = 0;
 
-    status = mbus_register_manufacturer_decoder(EXAMPLE_MANUFACTURER,
+    status = mbus_register_manufacturer_decoder(example_manufacturer,
                                                  example_decoder, &context);
     if (status != MBUS_OK) {
         fprintf(stderr, "registration failed (%d)\n", (int)status);
@@ -121,7 +120,7 @@ int main(void)
     ok = 1;
 
 cleanup:
-    status = mbus_unregister_manufacturer_decoder(EXAMPLE_MANUFACTURER);
+    status = mbus_unregister_manufacturer_decoder(example_manufacturer);
     if (status != MBUS_OK) {
         fprintf(stderr, "unregistration failed (%d)\n", (int)status);
         return 1;
