@@ -3,6 +3,23 @@
 #include <assert.h>
 #include <string.h>
 
+static mbus_status fallback_provider(const mbus_identity *application,
+                                     const mbus_identity *link,
+                                     mbus_synchronization sync, mbus_key *keys,
+                                     size_t capacity, size_t *count, void *context,
+                                     const char **error)
+{
+    int *calls = context;
+    size_t i;
+    (void)error;
+    assert(!application && link && link->manufacturer == 0x4cae);
+    assert(sync == MBUS_ASYNCHRONOUS && capacity >= 1);
+    (*calls)++;
+    for (i = 0; i < 16; i++) keys[0].bytes[i] = (uint8_t)i;
+    *count = 1;
+    return MBUS_OK;
+}
+
 static void check(const cli_key_store *store, const uint8_t *frame, size_t length,
                   mbus_format format, const unsigned char *expected, size_t count)
 {
@@ -102,6 +119,34 @@ int main(void)
         check(&store, wired_long, sizeof(wired_long), MBUS_WIRED, all, sizeof(all));
         for (i = 0; i < store.count; i++) store.entries[i].has_link_constraint = 1;
         check(&store, wired_long, sizeof(wired_long), MBUS_WIRED, NULL, 0);
+    }
+    {
+        const uint8_t encrypted[] = {
+            46,0x44,0xae,0x4c,0x44,0x55,0x22,0x33,0x99,0x07,0x7a,0x55,0,0x20,0x05,
+            0xc2,0xa0,0x67,0xed,0x64,0xfb,0x48,0xde,0xad,0x61,0x1b,0xec,0xcb,0x91,0x86,0xff,
+            0x0d,0x2d,0x3f,0xbe,0xe2,0xfa,0x73,0x20,0x06,0xbf,0xb4,0xe0,0x4d,0xb3,0x08,0x0a
+        };
+        cli_key_store selected = {0};
+        mbus_key keys[MBUS_MAX_KEYS];
+        static mbus_result decoded;
+        const char *error = NULL;
+        size_t count = 0;
+        int calls = 0;
+        assert(mbus_set_key_provider(fallback_provider, &calls) == MBUS_OK);
+        assert(cli_keys_match(&selected, encrypted, sizeof(encrypted), MBUS_WIRELESS,
+                              keys, &count, &error) == MBUS_OK && count == 0);
+        assert(mbus_decode_with_keys(encrypted, sizeof(encrypted), MBUS_WIRELESS,
+                                     keys, count, &decoded, &error) == MBUS_OK);
+        assert(calls == 1 && decoded.decrypted);
+        selected.count = 1;
+        memcpy(selected.entries[0].address, address, sizeof(address));
+        count = 0;
+        assert(cli_keys_match(&selected, encrypted, sizeof(encrypted), MBUS_WIRELESS,
+                              keys, &count, &error) == MBUS_OK && count == 1);
+        assert(mbus_decode_with_keys(encrypted, sizeof(encrypted), MBUS_WIRELESS,
+                                     keys, count, &decoded, &error) == MBUS_INVALID);
+        assert(calls == 1);
+        assert(mbus_set_key_provider(NULL, NULL) == MBUS_OK);
     }
     return 0;
 }

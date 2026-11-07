@@ -441,14 +441,13 @@ mbus_status cli_keys_match(const cli_key_store *store, const uint8_t *telegram,
     size_t i;
     mbus_status status = mbus_get_header_info(telegram, length, format, &info, error);
     if (status != MBUS_OK) return status;
-    if (format == MBUS_WIRELESS && info.has_extended_link_header)
-        type = (info.extended_link_control & MBUS_ELL_SYNCHRONIZED) ?
-               CLI_KEY_SYNCHRONOUS : CLI_KEY_ASYNCHRONOUS;
-    else if (format == MBUS_WIRELESS && info.has_transport_header &&
-             ((info.configuration & MBUS_SECURITY_MODE_MASK) == 0 ||
-              (info.configuration & MBUS_SECURITY_MODE_MASK) == MBUS_SECURITY_MODE_5))
-        type = (info.configuration & MBUS_CONFIG_SYNCHRONIZED) ?
-               CLI_KEY_SYNCHRONOUS : CLI_KEY_ASYNCHRONOUS;
+    {
+        mbus_synchronization sync = mbus_header_sync(
+            format, info.has_extended_link_header, info.extended_link_control,
+            info.has_transport_header, info.configuration);
+        if (sync == MBUS_SYNCHRONOUS) type = CLI_KEY_SYNCHRONOUS;
+        else if (sync == MBUS_ASYNCHRONOUS) type = CLI_KEY_ASYNCHRONOUS;
+    }
     for (i = 0; i < store->count; i++)
         if (application_identity_matches(&store->entries[i], &info)) application_matches = 1;
     passes = type == CLI_KEY_UNTYPED ? 1 : 2;

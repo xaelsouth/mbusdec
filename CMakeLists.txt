@@ -55,6 +55,16 @@ if(BUILD_TESTING)
     target_compile_definitions(test_mbus PRIVATE MBUS_EXPECTED_VERSION="${PROJECT_VERSION}")
     add_test(NAME library COMMAND test_mbus)
 
+    add_executable(test_key_provider tests/test_key_provider.c)
+    target_link_libraries(test_key_provider PRIVATE mbus)
+    add_test(NAME key_provider COMMAND test_key_provider)
+
+    add_executable(test_key_provider_example examples/key_provider.c)
+    target_link_libraries(test_key_provider_example PRIVATE mbus)
+    add_test(NAME key_provider_example COMMAND test_key_provider_example)
+    set_tests_properties(key_provider_example PROPERTIES
+        PASS_REGULAR_EXPRESSION "Decrypted telegram; profile values: 3")
+
     add_executable(test_cli_keys tests/test_cli_keys.c)
     target_include_directories(test_cli_keys PRIVATE include/private)
     target_link_libraries(test_cli_keys PRIVATE mbus_cli)

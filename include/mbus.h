@@ -51,6 +51,24 @@ typedef struct {
     uint8_t medium;
 } mbus_identity;
 
+typedef enum {
+    MBUS_SYNC_UNKNOWN,
+    MBUS_ASYNCHRONOUS,
+    MBUS_SYNCHRONOUS
+} mbus_synchronization;
+
+/*
+ * Fill keys with at most capacity AES-128 keys and set count to the number
+ * returned, in trial order. Zero keys is a successful lookup. application and
+ * link are NULL when the corresponding identity is unavailable. The pointers
+ * and key buffer are valid only for the duration of the call. On failure,
+ * return a non-OK status and optionally set error to a static diagnostic.
+ */
+typedef mbus_status (*mbus_key_provider)(
+    const mbus_identity *application, const mbus_identity *link,
+    mbus_synchronization synchronization, mbus_key *keys, size_t capacity,
+    size_t *count, void *context, const char **error);
+
 typedef struct mbus_record mbus_record;
 typedef struct mbus_result mbus_result;
 
@@ -215,6 +233,14 @@ mbus_status mbus_register_manufacturer_decoder(
 mbus_status mbus_unregister_manufacturer_decoder(uint16_t manufacturer);
 
 /*
+ * Install or replace the process-global key provider. Passing NULL removes it.
+ * The caller owns context and must keep it alive until removal or replacement.
+ * Registration and decoding with a provider are single-threaded; registration
+ * changes and recursive decoding are not allowed from within the provider.
+ */
+mbus_status mbus_set_key_provider(mbus_key_provider provider, void *context);
+
+/*
  * Decode a complete wired long frame or CRC-stripped wireless frame.
  * The caller owns all buffers; telegram and result must not overlap.
  * error may be NULL. Otherwise it is cleared on entry and, on failure,
@@ -227,8 +253,11 @@ mbus_status mbus_decode(const uint8_t *telegram, size_t length,
 
 /*
  * As above, trying up to MBUS_MAX_KEYS AES-128 keys in order. keys may be
- * NULL only when key_count is zero. Decrypted payload bytes replace ciphertext
- * in result->telegram; input is unchanged. Decryption is not authentication.
+ * NULL only when key_count is zero. If key_count is zero, an installed key
+ * provider is called after successful header parsing, even for plaintext
+ * telegrams. A nonzero explicit key count suppresses the provider, including
+ * when those keys fail. Decrypted payload bytes replace ciphertext in
+ * result->telegram; input is unchanged. Decryption is not authentication.
  */
 mbus_status mbus_decode_with_keys(const uint8_t *telegram, size_t length,
                                   mbus_format format, const mbus_key *keys,

@@ -30,6 +30,7 @@ were removed for the test inputs.
 | `test_cli-65`, `test_cli-78` | Compact-profile records based on EN 13757-3 examples, wrapped in test wireless frames. See [M-Bus documentation](https://m-bus.com/documentation). |
 | [`library_decode.c`](library_decode.c), `test_cli-6` | Local illustrative telegram used by the library and CLI tests; no external source is recorded. |
 | [`manufacturer_decode.c`](manufacturer_decode.c) | Local illustrative manufacturer-specific formats and telegrams; they do not describe a real manufacturer's protocol. |
+| [`key_provider.c`](key_provider.c) | Mode 5 compact-profile regression telegram from [test_mbus.c](../tests/test_mbus.c), with a public test key; no external telegram source is recorded. |
 | `test_cli-104`, `test_cli-105`, `test_cli-106`, `test_cli-121` | Local invalid-input or unsupported-format test cases; no external telegram source is recorded. |
 | `test_cli-17`, `test_cli-32`, `test_cli-56`, `test_cli-86` | Local decoder regression inputs; no external telegram source is recorded. |
 | `test_cli-111`, `test_cli-118`, `test_cli-119`, `test_cli-120`, `test_cli-122` | Mode 5 test vectors and error variations from [test_cli.sh](../tests/test_cli.sh); no external telegram source is recorded. |

@@ -106,6 +106,23 @@ static inline mbus_status mbus_fail(const char **error, mbus_status status,
     return status;
 }
 
+static inline mbus_synchronization mbus_header_sync(
+    mbus_format format, int has_ell, uint8_t ell_control,
+    int has_transport, uint16_t configuration)
+{
+    if (format != MBUS_WIRELESS)
+        return MBUS_SYNC_UNKNOWN;
+    if (has_ell)
+        return (ell_control & MBUS_ELL_SYNCHRONIZED) ?
+               MBUS_SYNCHRONOUS : MBUS_ASYNCHRONOUS;
+    if (has_transport &&
+        ((configuration & MBUS_SECURITY_MODE_MASK) == 0 ||
+         (configuration & MBUS_SECURITY_MODE_MASK) == MBUS_SECURITY_MODE_5))
+        return (configuration & MBUS_CONFIG_SYNCHRONIZED) ?
+               MBUS_SYNCHRONOUS : MBUS_ASYNCHRONOUS;
+    return MBUS_SYNC_UNKNOWN;
+}
+
 mbus_status mbus_decode_records(const uint8_t *data, size_t length, size_t base,
                                 mbus_result *result, const char **error);
 mbus_status mbus_decode_security(const uint8_t *telegram, size_t *position,

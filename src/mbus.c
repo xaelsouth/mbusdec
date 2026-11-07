@@ -2,6 +2,26 @@
 
 #include <string.h>
 
+static mbus_key_provider key_provider;
+static void *key_provider_context;
+static int key_provider_active;
+
+mbus_status mbus_set_key_provider(mbus_key_provider provider, void *context)
+{
+    if (key_provider_active)
+        return MBUS_INVALID;
+    key_provider = provider;
+    key_provider_context = provider ? context : NULL;
+    return MBUS_OK;
+}
+
+static void clear_keys(mbus_key *keys, size_t count)
+{
+    volatile unsigned char *p = (volatile unsigned char *)keys;
+    size_t bytes = count * sizeof(*keys);
+    while (bytes--) *p++ = 0;
+}
+
 const char *mbus_version(void)
 {
     return MBUS_BUILD_VERSION;
@@ -151,6 +171,7 @@ mbus_status mbus_decode_with_keys(const uint8_t *telegram, size_t length,
 {
     size_t pos, end;
     mbus_status status;
+    mbus_key provided_keys[MBUS_MAX_KEYS];
     if (error != NULL) *error = NULL;
     if (telegram == NULL || result == NULL)
         return mbus_fail(error, MBUS_INVALID, "null argument");
@@ -158,12 +179,38 @@ mbus_status mbus_decode_with_keys(const uint8_t *telegram, size_t length,
         return mbus_fail(error, MBUS_INVALID, "invalid key list");
     if (length > MBUS_MAX_TELEGRAM)
         return mbus_fail(error, MBUS_LIMIT, "telegram exceeds maximum length");
+    if (key_provider_active)
+        return mbus_fail(error, MBUS_INVALID, "recursive decode from key provider");
     memset(result, 0, sizeof(*result));
     memcpy(result->telegram, telegram, length);
     result->telegram_length = length;
     result->format = format;
     status = read_headers(telegram, length, format, result, &pos, &end, error);
     if (status != MBUS_OK) return status;
+    if (key_count == 0 && key_provider != NULL) {
+        size_t count = 0;
+        key_provider_active = 1;
+        status = key_provider(
+            result->has_transport_identity ? &result->transport_identity : NULL,
+            result->has_link_identity ? &result->link_identity : NULL,
+            mbus_header_sync(format, result->has_extended_link_header,
+                             result->extended_link_control, result->has_transport_header,
+                             result->configuration),
+            provided_keys, MBUS_MAX_KEYS, &count, key_provider_context, error);
+        key_provider_active = 0;
+        if (status != MBUS_OK) {
+            clear_keys(provided_keys, MBUS_MAX_KEYS);
+            if (error != NULL && *error == NULL) *error = "key provider failed";
+            return status;
+        }
+        if (error != NULL) *error = NULL;
+        if (count > MBUS_MAX_KEYS) {
+            clear_keys(provided_keys, MBUS_MAX_KEYS);
+            return mbus_fail(error, MBUS_LIMIT, "key provider returned too many keys");
+        }
+        keys = provided_keys;
+        key_count = count;
+    }
     if (manufacturer_ci(result->ci)) {
         int handled = 0;
         size_t original_record_count = result->record_count;
@@ -172,6 +219,7 @@ mbus_status mbus_decode_with_keys(const uint8_t *telegram, size_t length,
         result->manufacturer_data_manufacturer = manufacturer_code(result);
         result->manufacturer_data_length = end - pos;
         memcpy(result->manufacturer_data, telegram + pos, end - pos);
+        clear_keys(provided_keys, MBUS_MAX_KEYS);
         if (result->has_transport_identity || result->has_link_identity) {
             status = mbus_dispatch_manufacturer_decoder(
                 MBUS_MANUFACTURER_CI, result->manufacturer_data_manufacturer,
@@ -188,8 +236,9 @@ mbus_status mbus_decode_with_keys(const uint8_t *telegram, size_t length,
     }
     if (result->has_transport_header) {
         status = mbus_decode_security(telegram, &pos, end, keys, key_count, result, error);
+        clear_keys(provided_keys, MBUS_MAX_KEYS);
         if (status != MBUS_OK) return status;
-    }
+    } else clear_keys(provided_keys, MBUS_MAX_KEYS);
     {
         mbus_status status = mbus_decode_records(result->telegram + pos, end - pos,
                                                  pos, result, error);
