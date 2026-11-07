@@ -1,0 +1,16 @@
+[
+  {
+    "application_layer_address": {
+      "serial_no": 55667788,
+      "device_type": "08",
+      "version": "55",
+      "manufacturer": "QDS"
+    },
+    "link_layer_address": {
+      "serial_no": 11223344,
+      "device_type": "37",
+      "version": "55",
+      "manufacturer": "QDS"
+    }
+  }
+]

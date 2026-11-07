@@ -45,7 +45,7 @@ typedef struct {
     cli_key_entry entry;
     unsigned seen, field, key_seen, id_seen, id_field, id_target;
     size_t entry_start;
-    int failed;
+    int failed, filter;
 } parser;
 
 static int literal(const char *s, int length, const char *wanted)
@@ -189,7 +189,9 @@ static int parse_event(int event, const char *s, int off, int len, void *data)
                 p->store->entries[i].has_link_constraint = p->entry.has_link_constraint;
             }
         } else {
-            if (!(p->seen & HAS_KEY) || p->store->count == CLI_MAX_KEY_ENTRIES)
+            if ((!p->filter && !(p->seen & HAS_KEY)) ||
+                (p->filter && (p->seen & HAS_TYPE) && !(p->seen & HAS_KEY)) ||
+                p->store->count == CLI_MAX_KEY_ENTRIES)
                 goto invalid;
             p->store->entries[p->store->count++] = p->entry;
         }
@@ -240,7 +242,8 @@ invalid:
     return 1;
 }
 
-int cli_keys_load(cli_key_store *store, const char *path, const char **error)
+static int load_store(cli_key_store *store, const char *path, const char **error,
+                      int filter)
 {
     static char buffer[KEY_FILE_LIMIT + 1];
     FILE *f = fopen(path, "rb");
@@ -249,12 +252,13 @@ int cli_keys_load(cli_key_store *store, const char *path, const char **error)
     parser p = {0};
     p.state = START;
     p.store = store;
+    p.filter = filter;
     store->count = 0;
-    if (!f) { *error = "cannot open key file"; return 0; }
+    if (!f) { *error = filter ? "cannot open filter file" : "cannot open key file"; return 0; }
     n = fread(buffer, 1, sizeof(buffer), f);
-    if (ferror(f)) { fclose(f); *error = "cannot read key file"; cli_clear_sensitive(buffer, sizeof(buffer)); return 0; }
-    if (fclose(f) != 0) { *error = "cannot close key file"; cli_clear_sensitive(buffer, sizeof(buffer)); return 0; }
-    if (n > KEY_FILE_LIMIT) { *error = "key file exceeds size limit"; cli_clear_sensitive(buffer, sizeof(buffer)); return 0; }
+    if (ferror(f)) { fclose(f); *error = filter ? "cannot read filter file" : "cannot read key file"; cli_clear_sensitive(buffer, sizeof(buffer)); return 0; }
+    if (fclose(f) != 0) { *error = filter ? "cannot close filter file" : "cannot close key file"; cli_clear_sensitive(buffer, sizeof(buffer)); return 0; }
+    if (n > KEY_FILE_LIMIT) { *error = filter ? "filter file exceeds size limit" : "key file exceeds size limit"; cli_clear_sensitive(buffer, sizeof(buffer)); return 0; }
     buffer[n] = '\0';
     consumed = mjson(buffer, (int)n, parse_event, &p);
     ok = consumed >= 0 && !p.failed && p.state == DONE;
@@ -268,9 +272,24 @@ int cli_keys_load(cli_key_store *store, const char *path, const char **error)
     cli_clear_sensitive(&p.entry, sizeof(p.entry));
     if (!ok) {
         cli_clear_sensitive(store, sizeof(*store));
-        *error = "invalid key file or too many key entries";
+        *error = filter ? "invalid filter file or too many entries" :
+                          "invalid key file or too many key entries";
     }
     return ok;
+}
+
+int cli_keys_load(cli_key_store *store, const char *path, const char **error)
+{
+    return load_store(store, path, error, 0);
+}
+
+int cli_filter_load(cli_key_store *store, const char *path, const char **error)
+{
+    size_t i;
+    if (!load_store(store, path, error, 1)) return 0;
+    for (i = 0; i < store->count; i++)
+        cli_clear_sensitive(&store->entries[i].key, sizeof(store->entries[i].key));
+    return 1;
 }
 
 static int same_identity(const uint8_t address[8], const mbus_identity *identity)
@@ -287,6 +306,29 @@ static int application_identity_matches(const cli_key_entry *entry, const mbus_h
            same_identity(entry->address, &info->transport) &&
            (!entry->has_link_constraint ||
             (info->has_link && same_identity(entry->link_address, &info->link)));
+}
+
+mbus_status cli_filter_match(const cli_key_store *store, const uint8_t *telegram,
+                             size_t length, mbus_format format, int *matched,
+                             const char **error)
+{
+    mbus_header_info info;
+    mbus_status status;
+    size_t i;
+    *matched = store->count == 0;
+    if (*matched) return MBUS_OK;
+    status = mbus_get_header_info(telegram, length, format, &info, error);
+    if (status != MBUS_OK) return status;
+    for (i = 0; i < store->count; i++) {
+        const cli_key_entry *entry = &store->entries[i];
+        if (application_identity_matches(entry, &info) ||
+            (!entry->application && info.has_link &&
+             same_identity(entry->address, &info.link))) {
+            *matched = 1;
+            break;
+        }
+    }
+    return MBUS_OK;
 }
 
 mbus_status cli_keys_match(const cli_key_store *store, const uint8_t *telegram,

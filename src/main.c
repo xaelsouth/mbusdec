@@ -12,11 +12,14 @@ static mbus_result result;
 static mbus_key keys[MBUS_MAX_KEYS];
 static size_t key_count;
 static cli_key_store key_store;
+static cli_key_store filter_store;
 static int have_key_store;
+static int have_filter;
 
 typedef enum {
     RTL_INVALID,
     RTL_DECODED,
+    RTL_FILTERED,
     RTL_DECODE_FAILED,
     RTL_BAD_CRC,
     RTL_ODD_TELEGRAM
@@ -38,12 +41,17 @@ static int parse_rssi(const char *text, uint32_t *value)
     return 1;
 }
 
-static int decode(mbus_format format, size_t length, const cli_receiver_metadata *receiver,
-                  const char *datagram)
+static rtl_outcome decode(mbus_format format, size_t length, const cli_receiver_metadata *receiver,
+                          const char *datagram)
 {
     const char *error = NULL;
     mbus_status status = MBUS_OK;
-    if (have_key_store)
+    int matched = 1;
+    if (have_filter)
+        status = cli_filter_match(&filter_store, telegram, length, format, &matched, &error);
+    if (status == MBUS_OK && !matched)
+        return RTL_FILTERED;
+    if (status == MBUS_OK && have_key_store)
         status = cli_keys_match(&key_store, telegram, length, format, keys, &key_count, &error);
     if (status == MBUS_OK)
         status = mbus_decode_with_keys(telegram, length, format, keys, key_count, &result, &error);
@@ -58,10 +66,10 @@ static int decode(mbus_format format, size_t length, const cli_receiver_metadata
         cli_json_stream_error(status == MBUS_INVALID ? CLI_STATUS_INVALID :
                               status == MBUS_LIMIT ? CLI_STATUS_LIMIT : CLI_STATUS_UNSUPPORTED,
                               error, receiver, datagram);
-        return 0;
+        return RTL_DECODE_FAILED;
     }
     cli_json_result(&result, receiver);
-    return 1;
+    return RTL_DECODED;
 }
 
 static rtl_outcome rtl_line(char *line, size_t length,
@@ -99,7 +107,7 @@ static rtl_outcome rtl_line(char *line, size_t length,
     if (!cli_hex_decode(fields[start + 7] + 2, strlen(fields[start + 7] + 2), telegram,
                         sizeof(telegram), &telegram_length))
         return RTL_INVALID;
-    return decode(MBUS_WIRELESS, telegram_length, receiver, *datagram) ? RTL_DECODED : RTL_DECODE_FAILED;
+    return decode(MBUS_WIRELESS, telegram_length, receiver, *datagram);
 }
 
 static int process_line(size_t n, int overflow)
@@ -116,7 +124,7 @@ static int process_line(size_t n, int overflow)
     else if (outcome == RTL_BAD_CRC)
         cli_json_stream_error(CLI_STATUS_CRC_FAILED, "receiver reported CRC failure", metadata, datagram);
     cli_clear_sensitive(input, sizeof(input));
-    return outcome != RTL_DECODED;
+    return outcome != RTL_DECODED && outcome != RTL_FILTERED;
 }
 
 static int rtl_stream(void)
@@ -145,13 +153,14 @@ static int rtl_stream(void)
 
 int main(int argc, char **argv)
 {
-    const char *error = NULL, *key_path = NULL;
+    const char *error = NULL, *key_path = NULL, *filter_path = NULL;
     int rtl_option_seen = 0, i, result_code;
     for (i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--rtl-wmbus") && !rtl_option_seen) rtl_option_seen = 1;
         else if (!strcmp(argv[i], "--keys") && !key_path && i + 1 < argc) key_path = argv[++i];
+        else if (!strcmp(argv[i], "--filter") && !filter_path && i + 1 < argc) filter_path = argv[++i];
         else {
-            fprintf(stderr, "usage: mbusdec [--rtl-wmbus] [--keys FILE]\n");
+            fprintf(stderr, "usage: mbusdec [--rtl-wmbus] [--keys FILE] [--filter FILE]\n");
             return 1;
         }
     }
@@ -162,7 +171,16 @@ int main(int argc, char **argv)
         }
         have_key_store = 1;
     }
+    if (filter_path) {
+        if (!cli_filter_load(&filter_store, filter_path, &error)) {
+            fprintf(stderr, "%s: %s\n", filter_path, error);
+            cli_clear_sensitive(&key_store, sizeof(key_store));
+            return 1;
+        }
+        have_filter = 1;
+    }
     result_code = rtl_stream();
     cli_clear_sensitive(&key_store, sizeof(key_store));
+    cli_clear_sensitive(&filter_store, sizeof(filter_store));
     return result_code;
 }

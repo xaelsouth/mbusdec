@@ -26,6 +26,10 @@ typedef struct {
 } cli_key_store;
 
 int cli_keys_load(cli_key_store *store, const char *path, const char **error);
+int cli_filter_load(cli_key_store *store, const char *path, const char **error);
+mbus_status cli_filter_match(const cli_key_store *store, const uint8_t *telegram,
+                             size_t length, mbus_format format, int *matched,
+                             const char **error);
 mbus_status cli_keys_match(const cli_key_store *store, const uint8_t *telegram,
                            size_t length, mbus_format format, mbus_key *keys,
                            size_t *count, const char **error);

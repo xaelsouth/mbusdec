@@ -92,6 +92,10 @@ if(BUILD_TESTING)
     add_test(NAME rtl_wmbus COMMAND ${SH_EXECUTABLE}
              ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_rtl_wmbus.sh
              $<TARGET_FILE:mbusdec> ${JQ_EXECUTABLE})
+    add_test(NAME filter COMMAND ${SH_EXECUTABLE}
+             ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_filter.sh
+             $<TARGET_FILE:mbusdec> ${JQ_EXECUTABLE}
+             ${CMAKE_CURRENT_SOURCE_DIR}/examples)
     else()
         message(STATUS "Shell and jq not found; JSON CLI tests are unavailable")
     endif()

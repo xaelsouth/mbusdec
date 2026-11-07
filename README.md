@@ -1,52 +1,36 @@
-# M-Bus decoder (initial implementation)
+# M-Bus decoder
 
 A C11 library and JSON command-line decoder for a subset of EN 13757-3
 full-frame application data, with EN 13757-2 wired and EN 13757-4 wireless
 link framing and EN 13757-7 transport headers.
+
+This project was written and tested by AI as an experiment to explore what
+happens when AI is given the M-Bus EN 13757 specifications, the OMS
+specifications, and publicly available test vectors such as those from
+[wmbusmeters](https://github.com/wmbusmeters/wmbusmeters). It is not a
+complete or certified implementation.
 
 Specifications can be found through the [OMS Group](https://oms-group.org/en/specification/)
 and [M-Bus documentation](https://m-bus.com/documentation). The latter describes
 an older M-Bus specification and links to the current publication.
 
 The project is released under the Unlicense; see [LICENSE](LICENSE). Third-party
-bundled dependencies retain their own applicable terms.
+bundled dependencies retain their own applicable terms:
+[tiny-AES-c](https://github.com/kokke/tiny-AES-c) supplies the default AES
+backend, and [mjson](https://github.com/cesanta/mjson) supports CLI JSON
+processing. Alternatively, select the external
+[OpenSSL](https://www.openssl.org/) AES backend with
+`-DMBUS_AES_BACKEND=openssl`.
 
-## Build and test
+Some OpenSSL FIPS modules have been validated, but selecting OpenSSL alone
+does not make this project FIPS compliant or certified. This implementation
+uses low-level OpenSSL AES APIs, which bypass the OpenSSL 3 FIPS provider; see
+the [OpenSSL FIPS module guide](https://docs.openssl.org/3.0/man7/fips_module/).
+Selecting OpenSSL likewise does not establish compliance with the
+[EU Cyber Resilience Act](https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act):
+applicable requirements must be assessed for the product and its lifecycle.
 
-Run `cmake -S . -B build` and `cmake --build build` to build `mbusdec` and
-`libmbus.a`. A C11 compiler and the math library are required. AES uses the
-bundled [tiny-AES-c](https://github.com/kokke/tiny-AES-c) implementation by
-default; it requires no OpenSSL installation. To use OpenSSL instead, configure
-with `-DMBUS_AES_BACKEND=openssl` and install the OpenSSL development library.
-The CLI's private `mbus_cli` static library bundles
-[mjson](https://github.com/cesanta/mjson) for JSON parsing and string emission;
-the public decoder library itself does not depend on mjson.
-Run
-`ctest --test-dir build --output-on-failure` for library and CLI tests;
-the CLI tests require a POSIX shell and `jq`. Configure with
-`-DBUILD_TESTING=OFF` to build without the test dependencies.
-On Windows, CMake and a C11 compiler such as MSVC or MinGW can build the
-bundled backend. The library tests are portable; shell-based JSON tests are
-registered only when both `sh` and `jq` are found.
-
-## Binary package
-
-After building, create a platform-specific `.tar.gz` archive with:
-
-```sh
-cmake --build build --target package
-```
-
-For multi-configuration generators, build and package with the same
-configuration, for example `cmake --build build --config Release --target package`.
-The archive contains the compiled `mbusdec` executable, the static decoder
-library, `include/mbus.h`, and license files. It contains binaries for the
-build target, not all platforms. System runtime libraries are not bundled;
-the OpenSSL backend also requires a compatible OpenSSL runtime for the CLI
-and OpenSSL development libraries when linking the static decoder library.
-Alternatively, install these files with `cmake --install build --prefix <directory>`.
-
-## CLI: rtl-wmbus stream and key file
+## Command Line Interface (CLI): rtl-wmbus stream and key
 
 Pipe [rtl-wmbus](https://github.com/xaelsouth/rtl-wmbus) output directly:
 
@@ -55,8 +39,7 @@ rtl_wmbus | ./build/mbusdec --keys keys.json
 ```
 
 The rtl-wmbus stream is the default and only supported input format;
-`--rtl-wmbus` explicitly selects the same format. The former one-shot JSON
-request format is no longer accepted. The library continues to support both
+`--rtl-wmbus` explicitly selects the same format. The library supports both
 wired and wireless frames.
 
 The stream accepts the receiver's eight semicolon-separated fields, including
@@ -158,11 +141,48 @@ Missing or invalid key files fail at startup. The
 [example stream](examples/rtl-wmbus.txt) and [test key file](examples/rtl-keys.json)
 can be used without receiver hardware.
 
+To decode only selected meters, pass an address filter:
+
+```sh
+rtl_wmbus | ./build/mbusdec --filter filter.json --keys keys.json
+```
+
+The [example filter](examples/filter.json) is a JSON array with the same
+address fields and per-entry matching rules as the key file. Entries need no `keys`:
+
+```json
+[
+  {
+    "application_layer_address": {
+      "serial_no": 55667788, "device_type": "08",
+      "version": "55", "manufacturer": "QDS"
+    },
+    "link_layer_address": {
+      "serial_no": 11223344, "device_type": "37",
+      "version": "55", "manufacturer": "QDS"
+    }
+  }
+]
+```
+
+An application-layer address matches the transport identity. An omitted or
+empty link-layer address imposes no link constraint; when present, both
+addresses must match. A link-only entry matches the link identity. Any
+matching entry admits the telegram; `[]` or no `--filter` admits all.
+Unmatched telegrams are skipped without output and do not affect exit status.
+Filtering happens before decryption and record decoding. Malformed input,
+CRC failures, or headers that cannot be inspected still produce errors.
+The filter is read at startup and has the same 32768-byte and 128-entry
+limits as the key file. Invalid or missing filter files fail at startup.
+A key file can also be used as a filter, but its keys are ignored for
+decryption; use `--keys` separately.
+
 The [examples](examples/) directory contains historical JSON request and
 response pairs for a test-only fixture decoder, including wired and wireless telegrams, mode 5
 and 7 decryption, compact profiles, and error responses. Files named after a
 test script and line number identify the original request; the upstream AES
-examples are named for their meters. Line numbers refer to the tests when the
+examples are named for their meters. See the [example source index](examples/README.md)
+for provenance and upstream links. Line numbers refer to the tests when the
 examples were captured and may shift as tests change. The inputs intentionally include public
 test keys, not real secrets. Duplicate JSON keys are retained in the
 duplicate-key rejection example. These inputs are not accepted by `mbusdec`;
@@ -173,8 +193,7 @@ C-field as a two-digit uppercase hexadecimal string without a prefix.
 `groups` is an array keyed by `storage`,
 `tariff`, `function`, and `subunit`; every matching record appears in the same
 group, even when the records are not adjacent in the telegram. Groups include
-the subunit, including zero, and records retain their own subunit field. This
-splits previously combined groups when their records have different subunits.
+the subunit, including zero, and records retain their own subunit field.
 Function is one of
 `instantaneous`, `maximum`, `minimum`, or `error`, and is also retained on
 each record. Each record includes its quantity,
@@ -212,8 +231,7 @@ decoded from the four little-endian BCD bytes, `manufacturer` as a three-letter
 code, and `version` and `device_type` as two-digit uppercase hex strings.
 Leading zeroes in the serial number are not retained. Invalid BCD serials or
 manufacturer codes cause an invalid response containing the original `datagram`
-and an explanatory error. This changes the earlier JSON identity fields and
-types; the C library's `mbus_identity` remains unchanged. Status, configuration,
+and an explanatory error. Status, configuration,
 manufacturer-specific trailing bytes and the continuation indication are
 returned when present. Scaled numbers use floating-point arithmetic; use
 `raw_value` and `exponent` if exact decimal arithmetic is needed.
@@ -321,24 +339,20 @@ Numeric union members are unscaled; `value` is the scaled `double`. Check
 `invalid_value` identifies a meter-marked invalid value; no-data and compact
 profile records use `MBUS_VALUE_NONE`. An invalid or unsupported record may
 still have a type tag, but does not contain a usable scalar value.
-The former `integer`, `unsigned_integer`, `datetime`, `is_real`,
-`is_unsigned`, and `is_datetime` fields were removed: use the tagged union and
-rebuild library consumers. CLI JSON values are unchanged.
 
 `record_offset`/`record_length` and
 `value_offset`/`value_length` refer to bytes in the result's owned `telegram`
 copy, independent of the lifetime of the input buffer. Error strings and
 unit/quantity names are static and must not be freed. Input and result storage
 must not overlap.
-Use `mbus_decode_with_keys` with caller-owned `mbus_key` entries for AES; the
-original `mbus_decode` remains the no-key convenience API. A decrypted result
+Use `mbus_decode_with_keys` with caller-owned `mbus_key` entries for AES;
+`mbus_decode` is the no-key convenience API. A decrypted result
 stores plaintext in its `telegram` copy at the encrypted payload offsets;
 the caller's input buffer remains unchanged.
 
 VIF extensions are available as `record.vifes[0..vife_count-1]` in
-transmission order; a zero count means there are none. The former public
-`record.vife` and `record.has_vife` fields were removed: use `vife_count > 0`
-and `vifes[0]` instead and rebuild library consumers. The CLI's `vife` and
+transmission order; a zero count means there are none. Use `vife_count > 0`
+and `vifes[0]` to access the first extension. The CLI's `vife` and
 `vifes` JSON fields contain hexadecimal strings.
 
 API summary:
@@ -371,8 +385,7 @@ Each successful decode replaces the previous contents. Concurrent calls need
 separate caller-owned inputs and outputs.
 
 The result has separate `link_identity` and `transport_identity` structures,
-with `has_link_identity` and `has_transport_identity` presence flags. This
-replaces the earlier single identity fields.
+with `has_link_identity` and `has_transport_identity` presence flags.
 
 Manufacturer callbacks are selected by the telegram's transport manufacturer
 when present, otherwise its link manufacturer. They receive the block kind,
@@ -425,6 +438,41 @@ side-channel attacks; validate the backend and deployment if that matters. Limit
 `MBUS_MAX_TELEGRAM` (261 bytes), `MBUS_MAX_RECORDS` (64), and 8191 bytes per
 rtl-wmbus input line, plus `MBUS_MAX_PROFILE_VALUES` (256) across a decoded telegram;
 exceeding a limit fails rather than truncating.
+
+## Build and test
+
+Run `cmake -S . -B build` and `cmake --build build` to build `mbusdec` and
+`libmbus.a`. A C11 compiler and the math library are required. AES uses the
+bundled [tiny-AES-c](https://github.com/kokke/tiny-AES-c) implementation by
+default; it requires no OpenSSL installation. To use OpenSSL instead, configure
+with `-DMBUS_AES_BACKEND=openssl` and install the OpenSSL development library.
+The CLI's private `mbus_cli` static library bundles
+[mjson](https://github.com/cesanta/mjson) for JSON parsing and string emission;
+the public decoder library itself does not depend on mjson.
+Run
+`ctest --test-dir build --output-on-failure` for library and CLI tests;
+the CLI tests require a POSIX shell and `jq`. Configure with
+`-DBUILD_TESTING=OFF` to build without the test dependencies.
+On Windows, CMake and a C11 compiler such as MSVC or MinGW can build the
+bundled backend. The library tests are portable; shell-based JSON tests are
+registered only when both `sh` and `jq` are found.
+
+## Binary package
+
+After building, create a platform-specific `.tar.gz` archive with:
+
+```sh
+cmake --build build --target package
+```
+
+For multi-configuration generators, build and package with the same
+configuration, for example `cmake --build build --config Release --target package`.
+The archive contains the compiled `mbusdec` executable, the static decoder
+library, `include/mbus.h`, and license files. It contains binaries for the
+build target, not all platforms. System runtime libraries are not bundled;
+the OpenSSL backend also requires a compatible OpenSSL runtime for the CLI
+and OpenSSL development libraries when linking the static decoder library.
+Alternatively, install these files with `cmake --install build --prefix <directory>`.
 
 ## Supported scope and limitations
 
