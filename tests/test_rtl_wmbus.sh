@@ -15,7 +15,7 @@ cmp "$tmp/output" "$tmp/explicit"
 "$jq" -e '.format == "wireless" and .decode_status == {"code":0,"text":"ok"} and
     (has("datagram") | not) and
     .primary_identity == {"serial_no":78563412,"manufacturer":"KAM","version":"01","device_type":"07"} and
-    .ci == "78" and
+    .ci == "78" and .timestamp == "time" and
     ([.. | objects | select(has("value_hex"))] | length == 0) and
     .groups[0].records[0].raw_value == 1234' "$tmp/output" >/dev/null
 if printf 'T1;1;1;time;1;1;11223344;0x0D442D2C5A341200010778010301\n' |
@@ -41,15 +41,15 @@ printf 'T1;1;1;time;1;1;11223344;0x22442D2C1234567801077801030181400302010303818
 printf 'T1;1;1;time;0;4294967295;11223344;0x16442D2C123456780107780202D20402152E16022A3423\nrla;C1;1;1;time;75;42;11223344;0x16442D2C123456780107780202D20402152E16022A3423' > "$tmp/input"
 "$decoder" < "$tmp/input" > "$tmp/output"
 "$jq" -Rse 'split("\n") | length == 3 and .[2] == "" and
-    (.[0] | fromjson | .receiver == {"packet_rssi":0,"current_rssi":4294967295}) and
-    (.[1] | fromjson | .receiver == {"packet_rssi":75,"current_rssi":42})' "$tmp/output" >/dev/null
+    (.[0] | fromjson | .timestamp == "time" and .receiver == {"packet_rssi":0,"current_rssi":4294967295}) and
+    (.[1] | fromjson | .timestamp == "time" and .receiver == {"packet_rssi":75,"current_rssi":42})' "$tmp/output" >/dev/null
 printf 'T1;1;1;time;-1;1;11223344;0x16442D2C123456780107780202D20402152E16022A3423\nT1;1;1;time;1;4294967296;11223344;0x16442D2C123456780107780202D20402152E16022A3423\nT1;1;1;time;abc;1;11223344;0x16442D2C123456780107780202D20402152E16022A3423\nT1;1;1;time;1;1;11223344;0x16442D2C123456780107780202D20402152E16022A3423\n' > "$tmp/input"
 if "$decoder" < "$tmp/input" > "$tmp/output"; then
     echo "Expected invalid RSSI values to fail" >&2
     exit 1
 fi
 "$jq" -se 'length == 4 and all(.[0:3][]; .code == "invalid" and
-    .datagram == "16442D2C123456780107780202D20402152E16022A3423") and
+    .timestamp == "time" and .datagram == "16442D2C123456780107780202D20402152E16022A3423") and
     .[3].receiver == {"packet_rssi":1,"current_rssi":1}' "$tmp/output" >/dev/null
 if printf 'T1;0;1;time;not-a-number;also-invalid;11223344;0x1\n' |
     "$decoder" > "$tmp/output"; then
@@ -57,7 +57,16 @@ if printf 'T1;0;1;time;not-a-number;also-invalid;11223344;0x1\n' |
     exit 1
 fi
 "$jq" -e '.decode_status == {"code":4,"text":"receiver reported CRC failure"} and
-    .code == "crc_failed" and .datagram == "1" and (has("receiver") | not)' "$tmp/output" >/dev/null
+    .code == "crc_failed" and .timestamp == "time" and .datagram == "1" and (has("receiver") | not)' "$tmp/output" >/dev/null
+printf 't2a;C1;1;1;2026-11-07 12:34:56.123456;1;1;11223344;0x16442D2C123456780107780202D20402152E16022A3423\n' |
+    "$decoder" | "$jq" -e '.timestamp == "2026-11-07 12:34:56.123456"' >/dev/null
+if printf 'T1;0;1;"\\\001\377;1;1;11223344;0x1\nT1;1;1;;1;1;11223344;0x1\ninvalid\n' |
+    "$decoder" > "$tmp/output"; then
+    echo "Expected malformed input failures" >&2
+    exit 1
+fi
+"$jq" -se 'length == 3 and .[0].timestamp == "\"\\\u0001\u00ff" and
+    (.[1] | has("timestamp") | not) and (.[2] | has("timestamp") | not)' "$tmp/output" >/dev/null
 printf '{"format":"wireless","telegram":"16442D2C123456780107780202D20402152E16022A3423"}\nT1;1;1;time;1;1;11223344;0x16442D2C123456780107780202D20402152E16022A3423\n' > "$tmp/input"
 if "$decoder" < "$tmp/input" > "$tmp/output"; then
     echo "Expected former JSON input to be rejected" >&2

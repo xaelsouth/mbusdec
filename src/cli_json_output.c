@@ -69,12 +69,36 @@ static void decode_status(writer *w, cli_status status, const char *text)
 
 static void receiver_field(writer *w, const cli_receiver_metadata *receiver)
 {
-    if (receiver == NULL) return;
+    if (receiver == NULL || !receiver->has_rssi) return;
     key(w, "receiver");
     begin(w, '{');
     unsigned_field(w, "packet_rssi", receiver->packet_rssi);
     unsigned_field(w, "current_rssi", receiver->current_rssi);
     end(w, '}');
+}
+
+static void input_string_field(writer *w, const char *name, const char *text)
+{
+    const unsigned char *p = (const unsigned char *)text;
+    key(w, name);
+    putchar('"');
+    for (; *p; p++) {
+        if (*p == '"' || *p == '\\') {
+            putchar('\\');
+            putchar(*p);
+        } else if (*p < 0x20 || *p >= 0x7f) {
+            printf("\\u%04x", (unsigned)*p);
+        } else {
+            putchar(*p);
+        }
+    }
+    putchar('"');
+}
+
+static void timestamp_field(writer *w, const cli_receiver_metadata *receiver)
+{
+    if (receiver != NULL && receiver->timestamp != NULL)
+        input_string_field(w, "timestamp", receiver->timestamp);
 }
 
 static void signed_field(writer *w, const char *name, int64_t value)
@@ -304,6 +328,7 @@ void cli_json_result(const mbus_result *r, const cli_receiver_metadata *receiver
     string_field(&w, "format", r->format == MBUS_WIRED ? "wired" : "wireless");
     if (receiver != NULL) {
         decode_status(&w, CLI_STATUS_OK, "ok");
+        timestamp_field(&w, receiver);
         receiver_field(&w, receiver);
     }
     hex_field(&w, "control", &r->control, 1);
@@ -432,24 +457,13 @@ void cli_json_stream_error(cli_status status, const char *message,
     decode_status(&w, status, message);
     string_field(&w, "error", message);
     string_field(&w, "code", code);
+    timestamp_field(&w, receiver);
     receiver_field(&w, receiver);
     if (datagram != NULL) {
         const unsigned char *p = (const unsigned char *)datagram;
         if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X'))
             p += 2;
-        key(&w, "datagram");
-        putchar('"');
-        for (; *p; p++) {
-            if (*p == '"' || *p == '\\') {
-                putchar('\\');
-                putchar(*p);
-            } else if (*p < 0x20 || *p >= 0x7f) {
-                printf("\\u%04x", (unsigned)*p);
-            } else {
-                putchar(*p);
-            }
-        }
-        putchar('"');
+        input_string_field(&w, "datagram", (const char *)p);
     } else {
         null_field(&w, "datagram");
     }

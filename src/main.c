@@ -92,13 +92,16 @@ static rtl_outcome rtl_line(char *line, size_t length,
     if (count == 8 || count == 9) *datagram = fields[count - 1];
     if (count == 9 && (!strcmp(fields[0], "rla") || !strcmp(fields[0], "t2a"))) start = 1;
     else if (count != 8) return RTL_INVALID;
+    *has_receiver = 1;
+    receiver->timestamp = fields[start + 3][0] ? fields[start + 3] : NULL;
+    receiver->has_rssi = 0;
     if (strcmp(fields[start], "T1") && strcmp(fields[start], "C1") && strcmp(fields[start], "S1"))
         return RTL_INVALID;
-    *has_receiver = parse_rssi(fields[start + 4], &receiver->packet_rssi) &&
-                    parse_rssi(fields[start + 5], &receiver->current_rssi);
+    receiver->has_rssi = parse_rssi(fields[start + 4], &receiver->packet_rssi) &&
+                         parse_rssi(fields[start + 5], &receiver->current_rssi);
     if (!strcmp(fields[start + 1], "0")) return RTL_BAD_CRC;
     if (strcmp(fields[start + 1], "1") || strcmp(fields[start + 2], "1") ||
-        !fields[start + 3][0] || !fields[start + 6][0] || !*has_receiver)
+        !fields[start + 3][0] || !fields[start + 6][0] || !receiver->has_rssi)
         return RTL_INVALID;
     if (fields[start + 7][0] != '0' ||
         (fields[start + 7][1] != 'x' && fields[start + 7][1] != 'X'))

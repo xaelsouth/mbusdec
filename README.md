@@ -14,6 +14,10 @@ Specifications can be found through the [OMS Group](https://oms-group.org/en/spe
 and [M-Bus documentation](https://m-bus.com/documentation). The latter describes
 an older M-Bus specification and links to the current publication.
 
+For a commercially available alternative, DeviceLab offers
+[Payload Extractor](https://devicelab.dk/#payloadextractor), an on-premises
+wireless M-Bus and OMS decoder with an HTTP interface and integrated key store.
+
 The project is released under the Unlicense; see [LICENSE](LICENSE). Third-party
 bundled dependencies retain their own applicable terms:
 [tiny-AES-c](https://github.com/kokke/tiny-AES-c) supplies the default AES
@@ -72,8 +76,11 @@ unsigned integers copied from the receiver's PACKET_RSSI and CURRENT_RSSI
 fields when both are available and valid, including on failures. These are
 rtl-wmbus signal readings, not calibrated dBm values. Both
 must be decimal integers between 0 and 4294967295; malformed values cause an
-`"invalid"` error. Receiver timestamps and printed serial are not included;
-identities come from the telegram itself. A line is limited to 8191 bytes.
+`"invalid"` error. The top-level `timestamp` is copied verbatim from the
+receiver when its field can be identified and is nonempty, including on
+errors. No timezone is inferred or converted: rtl-wmbus uses local time on
+Unix and UTC on Windows, without a timezone suffix. The printed serial is not
+included; identities come from the telegram itself. A line is limited to 8191 bytes.
 An odd-length datagram with a passing receiver CRC produces an `"invalid"`
 error and processing continues. CRC failure takes precedence over datagram
 parsing, so failed telegrams are never decoded.
@@ -347,7 +354,8 @@ copy, independent of the lifetime of the input buffer. Error strings and
 unit/quantity names are static and must not be freed. Input and result storage
 must not overlap.
 Use `mbus_decode_with_keys` with caller-owned `mbus_key` entries for AES;
-`mbus_decode` is the no-key convenience API. A decrypted result
+`mbus_decode` supplies no explicit keys and can use an installed key provider.
+A decrypted result
 stores plaintext in its `telegram` copy at the encrypted payload offsets;
 the caller's input buffer remains unchanged.
 
@@ -361,10 +369,29 @@ API summary:
 * `mbus_version`: return the library's CMake project version as a
   NUL-terminated string, for example `"0.1.0"`. The string has static
   lifetime, is read-only, and must not be freed.
-* `mbus_decode`: decode without keys.
+* `mbus_decode`: decode using the installed key provider, if any.
 * `mbus_decode_with_keys`: decode with up to `MBUS_MAX_KEYS` AES-128 keys,
   tried in order. A zero count permits a null key pointer. The two-byte
   verification is not authentication.
+* `mbus_set_key_provider`: install, replace, or remove (with `NULL`) a
+  process-global key retrieval callback and its caller-owned context.
+  Decoding calls it once after successful header parsing when the explicit
+  key count is zero, including plaintext and manufacturer-specific telegrams.
+  It receives nullable application and link identities, a synchronization
+  state, a key buffer of `MBUS_MAX_KEYS` capacity, and returns a key count
+  and status. Return zero keys with `MBUS_OK` for no match; errors abort the
+  decode. Provider keys are tried in returned order and cleared afterwards.
+  Explicit keys take precedence: a failed explicit key does not invoke the
+  provider. The CLI's key-file selection similarly passes only matching keys;
+  its standalone executable does not install a provider. Embedding programs
+  can register one in their own process.
+  Synchronization follows the same ELL/transport precedence as key-file
+  selection; `MBUS_SYNC_UNKNOWN` means no applicable bit was available.
+  Registration and decoding with a provider are single-threaded; do not
+  register, remove, or recursively decode from within the callback. Keep
+  the callback context and any error strings alive as documented in the header.
+  See [examples/key_provider.c](examples/key_provider.c) for a complete
+  callback and registration example using a public test key.
 * `mbus_register_manufacturer_decoder`: install or replace a process-global
   callback for one 16-bit manufacturer code. Up to
   `MBUS_MAX_MANUFACTURER_DECODERS` (32) distinct manufacturers may be
@@ -376,6 +403,26 @@ API summary:
   `mbus_get_identities` is a convenience function for identities alone.
   Header inspection validates framing and supported headers, but does not
   validate or decrypt the payload.
+
+### Key provider example
+
+[examples/key_provider.c](examples/key_provider.c) installs a callback with
+`mbus_set_key_provider`, matches the telegram's link identity and
+synchronization state, returns a public test key, decodes a telegram, and
+removes the callback. Its context remains alive until the provider is removed.
+Replace the test lookup with your own key store or service; never hard-code
+production keys.
+
+After building the bundled AES backend, compile and run it from the project
+directory:
+
+```sh
+cc -std=c11 -Iinclude examples/key_provider.c build/libmbus.a -lm -o key_provider
+./key_provider
+```
+
+The output is `Decrypted telegram; profile values: 3`. For an OpenSSL build,
+add `-lcrypto` after the archive, as in the library example above.
 
 All functions return `MBUS_OK`, `MBUS_INVALID`, `MBUS_UNSUPPORTED`, or
 `MBUS_LIMIT`. Their optional `const char **error` is cleared on entry and
@@ -525,6 +572,10 @@ The real-telegram tests use example telegrams and selected readings from
 and [wired simulation](https://github.com/wmbusmeters/wmbusmeters/blob/a523d014a17ca24aeb8fa26c285468175eb89fdd/simulations/simulation_mbus.txt),
 plus a wireless heat cost allocator and sensor from
 [simulation_c1.txt](https://github.com/wmbusmeters/wmbusmeters/blob/a523d014a17ca24aeb8fa26c285468175eb89fdd/simulations/simulation_c1.txt).
+The tests also use four wired telegrams and selected expected readings from
+[rSCADA libmbus](https://github.com/rscada/libmbus/tree/057ab6314d4067b0f75f3f6f067d741262d2d3de/test/test-frames),
+revision `057ab6314d4067b0f75f3f6f067d741262d2d3de`; see the
+[fixture provenance and license](examples/README.md#libmbus-test-vectors).
 Expected fields are expressed in this decoder's JSON format and units.
 The [upstream AES tests](tests/test_upstream_aes.sh) also check two encrypted
 mode 5 telegrams against wmbusmeters' expected current and historical

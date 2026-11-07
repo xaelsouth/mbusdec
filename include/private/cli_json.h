@@ -6,6 +6,8 @@
 typedef struct {
     uint32_t packet_rssi;
     uint32_t current_rssi;
+    int has_rssi;
+    const char *timestamp;
 } cli_receiver_metadata;
 
 typedef enum {
