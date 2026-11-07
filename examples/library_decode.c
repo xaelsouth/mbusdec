@@ -9,10 +9,14 @@ int main(void)
         0x02, 0x02, 0xd2, 0x04, 0x02, 0x15, 0x2e, 0x16, 0x02, 0x2a, 0x34, 0x23
     };
     static mbus_result result;
+    mbus_context ctx;
     const char *error = NULL;
-    mbus_status status = mbus_decode(telegram, sizeof(telegram), MBUS_WIRELESS,
-                                     &result, &error);
+    mbus_status status;
     size_t i;
+
+    mbus_context_init(&ctx);
+    status = mbus_decode(&ctx, telegram, sizeof(telegram), MBUS_WIRELESS,
+                         &result, &error);
     if (status != MBUS_OK) {
         fprintf(stderr, "decode failed (%d): %s\n", (int)status,
                 error != NULL ? error : "no diagnostic");

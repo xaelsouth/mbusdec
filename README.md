@@ -338,7 +338,8 @@ cc -std=c11 -Iinclude examples/library_decode.c build/libmbus.a -lm -o library_d
 For the OpenSSL backend, add `-lcrypto` after the archive; static link
 dependencies and archive filenames may differ on Windows.
 
-Include `mbus.h` and call `mbus_decode` with the
+Include `mbus.h`, initialise a caller-owned `mbus_context` with
+`mbus_context_init`, and call `mbus_decode` with that context, the
 telegram bytes, length, format, a caller-owned `mbus_result`, and an optional
 error-message pointer. Inspect the result only when the return value is
 `MBUS_OK`. Records are returned in transmission order; group them by their
@@ -362,7 +363,7 @@ copy, independent of the lifetime of the input buffer. Error strings and
 unit/quantity names are static and must not be freed. Input and result storage
 must not overlap.
 Use `mbus_decode_with_keys` with caller-owned `mbus_key` entries for AES;
-`mbus_decode` supplies no explicit keys and can use an installed key provider.
+`mbus_decode` supplies no explicit keys and can use the key provider installed in its context.
 A decrypted result
 stores plaintext in its `telegram` copy at the encrypted payload offsets;
 the caller's input buffer remains unchanged.
@@ -390,14 +391,21 @@ API summary:
 * `mbus_version`: return the library's CMake project version as a
   NUL-terminated string, for example `"0.1.0"`. The string has static
   lifetime, is read-only, and must not be freed.
-* `mbus_decode`: decode using the installed key provider, if any.
+* `mbus_context`: caller-provided storage (stack, static or heap; the library
+  never allocates) holding a context's key provider and manufacturer decoders.
+  Initialise it with `mbus_context_init` (a zeroed context is also valid).
+  Contexts share no state, so separate contexts can be used concurrently, but
+  one context must be used by only one thread at a time: give each thread its
+  own context rather than sharing one.
+* `mbus_decode`: decode using the key provider and manufacturer decoders of
+  the given context, if any.
 * `mbus_decode_with_keys`: decode with up to `MBUS_MAX_KEYS` AES-128 keys,
   tried in order. A zero count permits a null key pointer. The two-byte
   verification is not authentication.
 * `mbus_wireless_remove_crc`: validate a raw Format A or B wireless link
   frame and remove its CRCs without decoding its payload.
 * `mbus_set_key_provider`: install, replace, or remove (with `NULL`) a
-  process-global key retrieval callback and its caller-owned context.
+  per-context key retrieval callback and its caller-owned context.
   Decoding calls it once after successful header parsing when the explicit
   key count is zero, including plaintext and manufacturer-specific telegrams.
   It receives nullable application and link identities, a synchronization
@@ -410,17 +418,16 @@ API summary:
   can register one in their own process.
   Synchronization follows the same ELL/transport precedence as key-file
   selection; `MBUS_SYNC_UNKNOWN` means no applicable bit was available.
-  Registration and decoding with a provider are single-threaded; do not
-  register, remove, or recursively decode from within the callback. Keep
+  Do not change the provider or recursively decode with the same context from
+  within the callback. Keep
   the callback context and any error strings alive as documented in the header.
   See [examples/key_provider.c](examples/key_provider.c) for a complete
   callback and registration example using a public test key.
-* `mbus_register_manufacturer_decoder`: install or replace a process-global
+* `mbus_register_manufacturer_decoder`: install or replace a per-context
   callback for one 16-bit manufacturer code. Up to
   `MBUS_MAX_MANUFACTURER_DECODERS` (32) distinct manufacturers may be
-  registered. `mbus_unregister_manufacturer_decoder` removes one. This
-  registry is single-threaded; do not register or unregister from inside a
-  callback.
+  registered per context. `mbus_unregister_manufacturer_decoder` removes one.
+  Do not register or unregister from inside a callback.
 * `mbus_get_header_info`: inspect link and transport identities, extended-link
   control and transport configuration before decoding or selecting a key.
   `mbus_get_identities` is a convenience function for identities alone.
@@ -468,12 +475,12 @@ mbus_status status = mbus_wireless_remove_crc(
     raw_frame, raw_length, MBUS_WIRELESS_FORMAT_A,
     normalized, sizeof(normalized), &normalized_length, &error);
 if (status == MBUS_OK) {
-    status = mbus_decode(normalized, normalized_length, MBUS_WIRELESS,
+    status = mbus_decode(&ctx, normalized, normalized_length, MBUS_WIRELESS,
                          &result, &error);
 }
 ```
 
-In this fragment `raw_frame`, `raw_length`, and `result` are supplied by the
+In this fragment `ctx`, `raw_frame`, `raw_length`, and `result` are supplied by the
 caller. Check `status` and `error` after either operation. The converter
 supports overlapping input and output buffers; its output remains unchanged
 on failure and the returned length is zero. It validates link framing, not

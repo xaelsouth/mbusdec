@@ -124,14 +124,14 @@ static inline mbus_synchronization mbus_header_sync(
     return MBUS_SYNC_UNKNOWN;
 }
 
-mbus_status mbus_decode_records(const uint8_t *data, size_t length, size_t base,
-                                mbus_result *result, const char **error);
-mbus_status mbus_decode_security(const uint8_t *telegram, size_t *position,
+mbus_status mbus_decode_records(mbus_context *ctx, const uint8_t *data, size_t length,
+                                size_t base, mbus_result *result, const char **error);
+mbus_status mbus_decode_security(mbus_context *ctx, const uint8_t *telegram, size_t *position,
                                  size_t end, const mbus_key *keys, size_t key_count,
                                  mbus_result *result, const char **error);
 mbus_status mbus_decode_profiles(mbus_result *result, const char **error);
 mbus_status mbus_dispatch_manufacturer_decoder(
-    mbus_manufacturer_block_kind kind, uint16_t manufacturer,
+    mbus_context *ctx, mbus_manufacturer_block_kind kind, uint16_t manufacturer,
     const uint8_t *data, size_t length, size_t offset,
     mbus_record *record, mbus_result *result, int *handled,
     const char **error);

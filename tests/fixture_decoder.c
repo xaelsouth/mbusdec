@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 
+static mbus_context ctx;
+
 static char input[8192];
 static uint8_t telegram[MBUS_MAX_TELEGRAM];
 static mbus_key keys[MBUS_MAX_KEYS];
@@ -11,6 +13,7 @@ static mbus_result result;
 
 int main(void)
 {
+    mbus_context_init(&ctx);
     size_t input_length = fread(input, 1, sizeof(input), stdin);
     size_t length = 0, key_count = 0;
     mbus_format format = MBUS_WIRED;
@@ -35,7 +38,7 @@ int main(void)
             cli_json_error("invalid JSON request, format, telegram or keys", NULL);
         return 1;
     }
-    status = mbus_decode_with_keys(telegram, length, format, keys, key_count, &result, &error);
+    status = mbus_decode_with_keys(&ctx, telegram, length, format, keys, key_count, &result, &error);
     cli_clear_sensitive(keys, sizeof(keys));
     if (status == MBUS_OK) {
         error = cli_json_identity_error(&result);

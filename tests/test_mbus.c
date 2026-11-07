@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 
+static mbus_context ctx;
+
 static mbus_result result;
 static const char *error;
 
@@ -72,7 +74,7 @@ static mbus_status decode_wireless(const uint8_t *payload, size_t n)
 {
     uint8_t frame[MBUS_MAX_TELEGRAM];
     size_t length = wireless(frame, payload, n);
-    return mbus_decode(frame, length, MBUS_WIRELESS, &result, &error);
+    return mbus_decode(&ctx, frame, length, MBUS_WIRELESS, &result, &error);
 }
 
 static void example(void)
@@ -88,10 +90,10 @@ static void example(void)
     assert(fabs(result.records[1].value - 567.8) < 1e-9);
     assert(fabs(result.records[2].value - 901.2) < 1e-9);
     n = wired(frame, payload, sizeof(payload));
-    assert(mbus_decode(frame, n, MBUS_WIRED, &result, &error) == MBUS_OK);
+    assert(mbus_decode(&ctx, frame, n, MBUS_WIRED, &result, &error) == MBUS_OK);
     assert(result.address == 1 && result.record_count == 3);
     frame[n - 2]++;
-    assert(mbus_decode(frame, n, MBUS_WIRED, &result, &error) == MBUS_INVALID);
+    assert(mbus_decode(&ctx, frame, n, MBUS_WIRED, &result, &error) == MBUS_INVALID);
 }
 
 static void group_and_numbers(void)
@@ -166,10 +168,10 @@ static void headers_and_errors(void)
     assert(result.transport_identity.version == 2 && result.transport_identity.medium == MEDIUM_HEAT_OUTLET);
     n = wireless(frame, short_header, sizeof(short_header));
     frame[9] = 0xff;
-    assert(mbus_decode(frame, n, MBUS_WIRELESS, &result, &error) == MBUS_OK);
+    assert(mbus_decode(&ctx, frame, n, MBUS_WIRELESS, &result, &error) == MBUS_OK);
     assert(result.link_identity.medium == 0xff);
     n = wired(frame, long_header, sizeof(long_header));
-    assert(mbus_decode(frame, n, MBUS_WIRED, &result, &error) == MBUS_OK);
+    assert(mbus_decode(&ctx, frame, n, MBUS_WIRED, &result, &error) == MBUS_OK);
     assert(!result.has_link_identity && result.has_transport_identity);
     assert(result.address == 1 && result.transport_identity.manufacturer == 0x1234);
     assert(mbus_get_identities(frame, n, MBUS_WIRED, &link, &has_link,
@@ -187,8 +189,8 @@ static void headers_and_errors(void)
     assert(decode_wireless(compact, sizeof(compact)) == MBUS_UNSUPPORTED);
     n = wireless(frame, short_header, sizeof(short_header));
     frame[0]--;
-    assert(mbus_decode(frame, n, MBUS_WIRELESS, &result, &error) == MBUS_INVALID);
-    assert(mbus_decode(NULL, n, MBUS_WIRELESS, &result, &error) == MBUS_INVALID);
+    assert(mbus_decode(&ctx, frame, n, MBUS_WIRELESS, &result, &error) == MBUS_INVALID);
+    assert(mbus_decode(&ctx, NULL, n, MBUS_WIRELESS, &result, &error) == MBUS_INVALID);
 }
 
 static void manufacturer_decoders(void)
@@ -207,11 +209,11 @@ static void manufacturer_decoders(void)
     assert(result.record_count == 2 && result.records[0].unsupported &&
            result.records[0].manufacturer_specific &&
            result.records[1].raw_value.signed_value == 5);
-    assert(mbus_register_manufacturer_decoder(0x2c2d, manufacturer_test_decoder,
+    assert(mbus_register_manufacturer_decoder(&ctx, 0x2c2d, manufacturer_test_decoder,
                                               (void *)&decline) == MBUS_OK);
     assert(decode_wireless(vif_data, sizeof(vif_data)) == MBUS_OK);
     assert(result.records[0].unsupported && result.records[1].raw_value.signed_value == 5);
-    assert(mbus_register_manufacturer_decoder(0x2c2d, manufacturer_test_decoder,
+    assert(mbus_register_manufacturer_decoder(&ctx, 0x2c2d, manufacturer_test_decoder,
                                               (void *)&accept) == MBUS_OK);
     assert(decode_wireless(vif_data, sizeof(vif_data)) == MBUS_OK);
     assert(!result.records[0].unsupported && result.records[0].manufacturer_specific &&
@@ -223,33 +225,50 @@ static void manufacturer_decoders(void)
     assert(!result.records[0].unsupported && result.records[0].manufacturer_specific &&
            result.records[0].raw_value.unsigned_value == 0x42 &&
            result.records[0].value == 132.0);
-    assert(mbus_unregister_manufacturer_decoder(0x2c2d) == MBUS_OK);
+    assert(mbus_unregister_manufacturer_decoder(&ctx, 0x2c2d) == MBUS_OK);
     assert(decode_wireless(vif_data, sizeof(vif_data)) == MBUS_OK);
     assert(result.records[0].unsupported);
 
     n = wireless(frame, ci_data, sizeof(ci_data));
-    assert(mbus_decode(frame, n, MBUS_WIRELESS, &result, &error) == MBUS_OK);
+    assert(mbus_decode(&ctx, frame, n, MBUS_WIRELESS, &result, &error) == MBUS_OK);
     assert(result.has_manufacturer_data && !result.manufacturer_data_decoded &&
            result.manufacturer_data_kind == MBUS_MANUFACTURER_CI &&
            result.manufacturer_data_length == 3);
-    assert(mbus_register_manufacturer_decoder(0x2c2d, manufacturer_test_decoder,
+    assert(mbus_register_manufacturer_decoder(&ctx, 0x2c2d, manufacturer_test_decoder,
                                               (void *)&accept) == MBUS_OK);
-    assert(mbus_decode(frame, n, MBUS_WIRELESS, &result, &error) == MBUS_OK);
+    assert(mbus_decode(&ctx, frame, n, MBUS_WIRELESS, &result, &error) == MBUS_OK);
     assert(result.has_manufacturer_data && result.manufacturer_data_decoded);
     assert(decode_wireless(dif_data, sizeof(dif_data)) == MBUS_OK);
     assert(result.has_manufacturer_data && result.manufacturer_data_decoded &&
            result.manufacturer_data_kind == MBUS_MANUFACTURER_DIF);
-    assert(mbus_unregister_manufacturer_decoder(0x2c2d) == MBUS_OK);
+    assert(mbus_unregister_manufacturer_decoder(&ctx, 0x2c2d) == MBUS_OK);
 
     for (i = 0; i < MBUS_MAX_MANUFACTURER_DECODERS; i++)
-        assert(mbus_register_manufacturer_decoder((uint16_t)(0x1000 + i),
+        assert(mbus_register_manufacturer_decoder(&ctx, (uint16_t)(0x1000 + i),
                                                   manufacturer_test_decoder,
                                                   (void *)&accept) == MBUS_OK);
-    assert(mbus_register_manufacturer_decoder(0x2000, manufacturer_test_decoder,
+    assert(mbus_register_manufacturer_decoder(&ctx, 0x2000, manufacturer_test_decoder,
                                               (void *)&accept) == MBUS_LIMIT);
     for (i = 0; i < MBUS_MAX_MANUFACTURER_DECODERS; i++)
-        assert(mbus_unregister_manufacturer_decoder((uint16_t)(0x1000 + i)) == MBUS_OK);
-    assert(mbus_unregister_manufacturer_decoder(0x2c2d) == MBUS_INVALID);
+        assert(mbus_unregister_manufacturer_decoder(&ctx, (uint16_t)(0x1000 + i)) == MBUS_OK);
+    assert(mbus_unregister_manufacturer_decoder(&ctx, 0x2c2d) == MBUS_INVALID);
+
+    /* A decoder registered in one context must not affect another. */
+    {
+        mbus_context other;
+        mbus_context_init(&other);
+        assert(mbus_register_manufacturer_decoder(&other, 0x2c2d, manufacturer_test_decoder,
+                                                  (void *)&accept) == MBUS_OK);
+        assert(decode_wireless(vif_data, sizeof(vif_data)) == MBUS_OK);
+        assert(result.records[0].unsupported);
+        n = wireless(frame, vif_data, sizeof(vif_data));
+        assert(mbus_decode(&other, frame, n, MBUS_WIRELESS, &result, &error) == MBUS_OK);
+        assert(!result.records[0].unsupported);
+        assert(mbus_unregister_manufacturer_decoder(&other, 0x2c2d) == MBUS_OK);
+        assert(mbus_unregister_manufacturer_decoder(&ctx, 0x2c2d) == MBUS_INVALID);
+    }
+    assert(mbus_register_manufacturer_decoder(NULL, 0x2c2d, manufacturer_test_decoder,
+                                              (void *)&accept) == MBUS_INVALID);
 }
 
 static void truncation_and_limits(void)
@@ -259,7 +278,7 @@ static void truncation_and_limits(void)
     size_t n, i;
     n = wired(frame, payload, sizeof(payload));
     for (i = 0; i < n; i++)
-        assert(mbus_decode(frame, i, MBUS_WIRED, &result, &error) != MBUS_OK);
+        assert(mbus_decode(&ctx, frame, i, MBUS_WIRED, &result, &error) != MBUS_OK);
     many[0] = 0x78;
     for (i = 0; i < MBUS_MAX_RECORDS + 1; i++) {
         many[1 + i * 3] = 1;
@@ -378,25 +397,25 @@ static void security_mode7(void)
     /* This vector uses wireless identity AE4C/44552233/99/07. */
     frame[2] = 0xae; frame[3] = 0x4c;
     memcpy(frame + 4, "\x44\x55\x22\x33\x99\x07", 6);
-    assert(mbus_decode_with_keys(frame, n, MBUS_WIRELESS, keys, 2, &result, &error) == MBUS_OK);
+    assert(mbus_decode_with_keys(&ctx, frame, n, MBUS_WIRELESS, keys, 2, &result, &error) == MBUS_OK);
     assert(result.decrypted && !result.authentication_verified);
     assert(result.message_counter == 0x04030201 && result.security_key_id == 0);
     assert(result.record_count == 2 && result.records[0].raw_value.signed_value == 123529);
     assert(result.records[1].raw_value.signed_value == 7);
-    assert(mbus_decode_with_keys(frame, n, MBUS_WIRELESS, keys, 1, &result, &error) == MBUS_INVALID);
-    assert(mbus_decode(frame, n, MBUS_WIRELESS, &result, &error) == MBUS_UNSUPPORTED);
+    assert(mbus_decode_with_keys(&ctx, frame, n, MBUS_WIRELESS, keys, 1, &result, &error) == MBUS_INVALID);
+    assert(mbus_decode(&ctx, frame, n, MBUS_WIRELESS, &result, &error) == MBUS_UNSUPPORTED);
     frame[15] = 0;
-    assert(mbus_decode_with_keys(frame, n, MBUS_WIRELESS, keys, 2, &result, &error) == MBUS_UNSUPPORTED);
+    assert(mbus_decode_with_keys(&ctx, frame, n, MBUS_WIRELESS, keys, 2, &result, &error) == MBUS_UNSUPPORTED);
     frame[15] = 0x10;
     frame[14] = 0x07;
-    assert(mbus_decode_with_keys(frame, n, MBUS_WIRELESS, keys, 2, &result, &error) == MBUS_UNSUPPORTED);
+    assert(mbus_decode_with_keys(&ctx, frame, n, MBUS_WIRELESS, keys, 2, &result, &error) == MBUS_UNSUPPORTED);
 
     n = wireless(frame, long_payload, sizeof(long_payload));
-    assert(mbus_decode_with_keys(frame, n, MBUS_WIRELESS, keys + 1, 1, &result, &error) == MBUS_OK);
+    assert(mbus_decode_with_keys(&ctx, frame, n, MBUS_WIRELESS, keys + 1, 1, &result, &error) == MBUS_OK);
     assert(result.has_key_version && result.security_key_version == 2);
     assert(result.record_count == 1 && result.records[0].raw_value.signed_value == 123529);
     n = wired(frame, long_payload, sizeof(long_payload));
-    assert(mbus_decode_with_keys(frame, n, MBUS_WIRED, keys + 1, 1, &result, &error) == MBUS_OK);
+    assert(mbus_decode_with_keys(&ctx, frame, n, MBUS_WIRED, keys + 1, 1, &result, &error) == MBUS_OK);
     assert(result.record_count == 1 && result.records[0].raw_value.signed_value == 123529);
 }
 
@@ -596,7 +615,7 @@ static void compact_profiles(void)
     assert(result.profile_values[45].integer == 1872);
     encrypted_length = wireless(encrypted_frame, encrypted_profile, sizeof(encrypted_profile));
     memcpy(encrypted_frame + 2, "\xae\x4c\x44\x55\x22\x33\x99\x07", 8);
-    assert(mbus_decode_with_keys(encrypted_frame, encrypted_length, MBUS_WIRELESS,
+    assert(mbus_decode_with_keys(&ctx, encrypted_frame, encrypted_length, MBUS_WIRELESS,
                                  &profile_key, 1, &result, &error) == MBUS_OK);
     assert(result.decrypted && result.profile_value_count == 3);
     assert(result.profile_values[0].integer == 123003 && result.profile_values[2].integer == 123016);
@@ -644,9 +663,9 @@ static void oms_annex_n(void)
     size_t i;
     for (i = 0; i < 2; i++) {
         mbus_status status = i == 0 ?
-            mbus_decode_with_keys(gas_wireless, sizeof(gas_wireless), MBUS_WIRELESS,
+            mbus_decode_with_keys(&ctx, gas_wireless, sizeof(gas_wireless), MBUS_WIRELESS,
                                   &gas_key, 1, &result, &error) :
-            mbus_decode(gas_wired, sizeof(gas_wired), MBUS_WIRED, &result, &error);
+            mbus_decode(&ctx, gas_wired, sizeof(gas_wired), MBUS_WIRED, &result, &error);
         assert(status == MBUS_OK);
         assert(result.record_count == 3);
         assert(strcmp(result.records[0].unit, "m3") == 0);
@@ -660,7 +679,7 @@ static void oms_annex_n(void)
     for (i = 0; i < 2; i++) {
         const uint8_t *frame = i == 0 ? hca_wireless : hca_wired;
         size_t length = i == 0 ? sizeof(hca_wireless) : sizeof(hca_wired);
-        assert(mbus_decode_with_keys(frame, length, i == 0 ? MBUS_WIRELESS : MBUS_WIRED,
+        assert(mbus_decode_with_keys(&ctx, frame, length, i == 0 ? MBUS_WIRELESS : MBUS_WIRED,
                                      &hca_key, 1, &result, &error) == MBUS_OK);
         assert(result.decrypted && !result.authentication_verified);
         assert(result.has_extended_link_header == (i == 0));
@@ -684,7 +703,7 @@ static void oms_annex_n(void)
         }
     }
     assert(decode_wireless(truncated_ell, sizeof(truncated_ell)) == MBUS_INVALID);
-    assert(mbus_decode_with_keys(gas_profile_b, sizeof(gas_profile_b), MBUS_WIRELESS,
+    assert(mbus_decode_with_keys(&ctx, gas_profile_b, sizeof(gas_profile_b), MBUS_WIRELESS,
                                  &hca_key, 1, &result, &error) == MBUS_UNSUPPORTED);
     assert(strstr(error, "AFL") != NULL);
 
@@ -695,7 +714,7 @@ static void oms_annex_n(void)
     transport_counter_frame[17] |= 0x20;
     memcpy(transport_counter_frame + 19, gas_profile_b + 18, 4);
     memcpy(transport_counter_frame + 23, gas_profile_b + 36, 32);
-    assert(mbus_decode_with_keys(transport_counter_frame, sizeof(transport_counter_frame),
+    assert(mbus_decode_with_keys(&ctx, transport_counter_frame, sizeof(transport_counter_frame),
                                  MBUS_WIRELESS, &hca_key, 1, &result, &error) == MBUS_OK);
     assert(result.decrypted && !result.authentication_verified && result.message_counter == 2739);
     assert(result.record_count == 3 && fabs(result.records[0].value - 28504.27) < 1e-8);
@@ -717,13 +736,14 @@ static void random_inputs(void)
             frame[0] = (uint8_t)(n - 1);
             frame[10] = 0x78;
         }
-        (void)mbus_decode(frame, n, MBUS_WIRELESS, &result, &error);
-        (void)mbus_decode(frame, n, MBUS_WIRED, &result, &error);
+        (void)mbus_decode(&ctx, frame, n, MBUS_WIRELESS, &result, &error);
+        (void)mbus_decode(&ctx, frame, n, MBUS_WIRED, &result, &error);
     }
 }
 
 int main(void)
 {
+    mbus_context_init(&ctx);
     const char *version = mbus_version();
     const char *names[] = {"TCH", "QDS"};
     size_t i = 0;

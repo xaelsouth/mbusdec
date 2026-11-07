@@ -147,6 +147,31 @@ typedef mbus_status (*mbus_manufacturer_decoder)(
     mbus_record *record, mbus_result *result, void *context,
     const char **error);
 
+/*
+ * Decoder state: the optional key provider and up to
+ * MBUS_MAX_MANUFACTURER_DECODERS manufacturer decoders. The caller provides the
+ * storage (stack, static or heap); the library never allocates. Call
+ * mbus_context_init before first use; a zero-filled context is equally valid.
+ * Fields are private.
+ *
+ * A context must be used by one thread at a time. Give each thread its own
+ * context; threads do not share one. Contexts share no state with each
+ * other, so separate contexts may be used concurrently without locking.
+ * Telegram, result and error storage belong to the caller as before.
+ */
+typedef struct {
+    struct {
+        uint16_t manufacturer;
+        mbus_manufacturer_decoder decoder;
+        void *context;
+    } decoders[MBUS_MAX_MANUFACTURER_DECODERS];
+    size_t decoder_count;
+    size_t dispatch_depth;
+    mbus_key_provider key_provider;
+    void *key_provider_context;
+    int key_provider_active;
+} mbus_context;
+
 typedef struct {
     mbus_identity link;
     mbus_identity transport;
@@ -275,25 +300,31 @@ const char *mbus_version(void);
 
 uint16_t mbus_manufacturer_code(const char *text);
 
+/* Reset ctx to its initial state: no key provider, no manufacturer decoders. */
+void mbus_context_init(mbus_context *ctx);
+
 /*
- * Register one process-global manufacturer decoder. Registrations are
- * single-threaded; at most MBUS_MAX_MANUFACTURER_DECODERS may be installed.
+ * Register one manufacturer decoder in ctx; at most
+ * MBUS_MAX_MANUFACTURER_DECODERS may be installed per context.
  * Registering an existing manufacturer replaces its decoder and context.
  * Registration changes are not allowed from inside a decoder callback.
  */
 mbus_status mbus_register_manufacturer_decoder(
-    uint16_t manufacturer, mbus_manufacturer_decoder decoder, void *context);
+    mbus_context *ctx, uint16_t manufacturer, mbus_manufacturer_decoder decoder,
+    void *context);
 
 /* Remove a registered decoder; returns MBUS_INVALID when none was registered. */
-mbus_status mbus_unregister_manufacturer_decoder(uint16_t manufacturer);
+mbus_status mbus_unregister_manufacturer_decoder(mbus_context *ctx,
+                                                 uint16_t manufacturer);
 
 /*
- * Install or replace the process-global key provider. Passing NULL removes it.
+ * Install or replace the key provider of ctx. Passing NULL removes it.
  * The caller owns context and must keep it alive until removal or replacement.
- * Registration and decoding with a provider are single-threaded; registration
- * changes and recursive decoding are not allowed from within the provider.
+ * Changing the provider and recursive decoding with ctx are not allowed from
+ * within the provider.
  */
-mbus_status mbus_set_key_provider(mbus_key_provider provider, void *context);
+mbus_status mbus_set_key_provider(mbus_context *ctx, mbus_key_provider provider,
+                                  void *context);
 
 /*
  * Validate and remove link CRCs from a raw wireless Format A or B frame,
@@ -313,29 +344,30 @@ mbus_status mbus_wireless_remove_crc(const uint8_t *input, size_t length,
 
 /*
  * Decode a complete wired long frame, CRC-stripped wireless frame, or raw
- * wireless Format A/B frame. Raw wireless results have format MBUS_WIRELESS
+ * wireless Format A/B frame, using the key provider and manufacturer decoders
+ * of ctx (required). Raw wireless results have format MBUS_WIRELESS
  * and offsets refer to the normalized CRC-stripped telegram.
  * The caller owns all buffers; telegram and result must not overlap.
  * error may be NULL. Otherwise it is cleared on entry and, on failure,
  * points to a static diagnostic string that must not be freed.
  * Only inspect result when MBUS_OK is returned.
  */
-mbus_status mbus_decode(const uint8_t *telegram, size_t length,
-                        mbus_format format, mbus_result *result,
+mbus_status mbus_decode(mbus_context *ctx, const uint8_t *telegram,
+                        size_t length, mbus_format format, mbus_result *result,
                         const char **error);
 
 /*
  * As above, trying up to MBUS_MAX_KEYS AES-128 keys in order. keys may be
- * NULL only when key_count is zero. If key_count is zero, an installed key
- * provider is called after successful header parsing, even for plaintext
+ * NULL only when key_count is zero. If key_count is zero, the key provider of
+ * ctx is called after successful header parsing, even for plaintext
  * telegrams. A nonzero explicit key count suppresses the provider, including
  * when those keys fail. Decrypted payload bytes replace ciphertext in
  * result->telegram; input is unchanged. Decryption is not authentication.
  */
-mbus_status mbus_decode_with_keys(const uint8_t *telegram, size_t length,
-                                  mbus_format format, const mbus_key *keys,
-                                  size_t key_count, mbus_result *result,
-                                  const char **error);
+mbus_status mbus_decode_with_keys(mbus_context *ctx, const uint8_t *telegram,
+                                  size_t length, mbus_format format,
+                                  const mbus_key *keys, size_t key_count,
+                                  mbus_result *result, const char **error);
 
 /*
  * Extract link and transport identities without decrypting. All output

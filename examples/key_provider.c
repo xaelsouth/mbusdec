@@ -36,15 +36,17 @@ int main(void)
     };
     mbus_key test_key = {{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
     static mbus_result result;
+    mbus_context ctx;
     const char *error = NULL;
     mbus_status status;
 
-    if (mbus_set_key_provider(lookup_key, &test_key) != MBUS_OK) {
+    mbus_context_init(&ctx);
+    if (mbus_set_key_provider(&ctx, lookup_key, &test_key) != MBUS_OK) {
         fprintf(stderr, "failed to install key provider\n");
         return 1;
     }
-    status = mbus_decode(telegram, sizeof(telegram), MBUS_WIRELESS, &result, &error);
-    if (mbus_set_key_provider(NULL, NULL) != MBUS_OK) {
+    status = mbus_decode(&ctx, telegram, sizeof(telegram), MBUS_WIRELESS, &result, &error);
+    if (mbus_set_key_provider(&ctx, NULL, NULL) != MBUS_OK) {
         fprintf(stderr, "failed to remove key provider\n");
         return 1;
     }

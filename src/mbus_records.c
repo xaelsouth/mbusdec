@@ -103,8 +103,8 @@ static int decode_date(mbus_record *r, const uint8_t *data, unsigned type)
     return 1;
 }
 
-mbus_status mbus_decode_records(const uint8_t *p, size_t n, size_t base, mbus_result *r,
-                                const char **error)
+mbus_status mbus_decode_records(mbus_context *ctx, const uint8_t *p, size_t n, size_t base,
+                                mbus_result *r, const char **error)
 {
     static const uint8_t lengths[16] = {0, 1, 2, 3, 4, 4, 6, 8, 0, 1, 2, 3, 4, 0, 6, 0};
     size_t pos = 0;
@@ -128,7 +128,7 @@ mbus_status mbus_decode_records(const uint8_t *p, size_t n, size_t base, mbus_re
                 r->transport_identity.manufacturer : r->link_identity.manufacturer;
             if (r->has_transport_identity || r->has_link_identity) {
                 mbus_status status = mbus_dispatch_manufacturer_decoder(
-                    MBUS_MANUFACTURER_DIF, r->manufacturer_data_manufacturer,
+                    ctx, MBUS_MANUFACTURER_DIF, r->manufacturer_data_manufacturer,
                     r->telegram + base + pos, n - pos, base + pos, NULL, r,
                     &handled, error);
                 if (status != MBUS_OK)
@@ -293,7 +293,7 @@ mbus_status mbus_decode_records(const uint8_t *p, size_t n, size_t base, mbus_re
             mbus_status status = MBUS_OK;
             if (r->has_transport_identity || r->has_link_identity)
                 status = mbus_dispatch_manufacturer_decoder(
-                    kind, identity->manufacturer, r->telegram + base + data_start, len,
+                    ctx, kind, identity->manufacturer, r->telegram + base + data_start, len,
                     base + data_start, rec, r, &handled, error);
             if (status != MBUS_OK)
                 return status;

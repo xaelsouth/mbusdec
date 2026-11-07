@@ -60,10 +60,10 @@ static mbus_status example_decoder(
     return MBUS_UNSUPPORTED;
 }
 
-static int decode(const uint8_t *telegram, size_t length, mbus_result *result)
+static int decode(mbus_context *ctx, const uint8_t *telegram, size_t length, mbus_result *result)
 {
     const char *error = NULL;
-    mbus_status status = mbus_decode(telegram, length, MBUS_WIRELESS, result, &error);
+    mbus_status status = mbus_decode(ctx, telegram, length, MBUS_WIRELESS, result, &error);
     if (status != MBUS_OK) {
         fprintf(stderr, "decode failed (%d): %s\n", (int)status,
                 error != NULL ? error : "no diagnostic");
@@ -83,18 +83,20 @@ int main(void)
         0xa0, 0x01, 0x2a
     };
     static mbus_result result;
+    mbus_context ctx;
     example_context context = {2.0};
     uint16_t example_manufacturer = MANUF_CODE("KAM");
     mbus_status status;
     int ok = 0;
 
-    status = mbus_register_manufacturer_decoder(example_manufacturer,
+    mbus_context_init(&ctx);
+    status = mbus_register_manufacturer_decoder(&ctx, example_manufacturer,
                                                  example_decoder, &context);
     if (status != MBUS_OK) {
         fprintf(stderr, "registration failed (%d)\n", (int)status);
         return 1;
     }
-    if (!decode(vif_telegram, sizeof(vif_telegram), &result))
+    if (!decode(&ctx, vif_telegram, sizeof(vif_telegram), &result))
         goto cleanup;
     if (result.record_count != 3 || result.records[0].unsupported ||
         result.records[0].raw_value.unsigned_value != 0x42 ||
@@ -108,7 +110,7 @@ int main(void)
     printf("VIF counter: %.0f; unknown block: undecoded; following energy: %.0f Wh\n",
            result.records[0].value, result.records[2].value);
 
-    if (!decode(ci_telegram, sizeof(ci_telegram), &result))
+    if (!decode(&ctx, ci_telegram, sizeof(ci_telegram), &result))
         goto cleanup;
     if (!result.manufacturer_data_decoded || result.record_count != 1 ||
         result.records[0].raw_value.unsigned_value != 0x2a ||
@@ -120,7 +122,7 @@ int main(void)
     ok = 1;
 
 cleanup:
-    status = mbus_unregister_manufacturer_decoder(example_manufacturer);
+    status = mbus_unregister_manufacturer_decoder(&ctx, example_manufacturer);
     if (status != MBUS_OK) {
         fprintf(stderr, "unregistration failed (%d)\n", (int)status);
         return 1;

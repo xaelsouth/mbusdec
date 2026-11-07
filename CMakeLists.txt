@@ -93,6 +93,9 @@ if(BUILD_TESTING)
     add_test(NAME fixture_decoder COMMAND ${SH_EXECUTABLE}
              ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cli.sh
              $<TARGET_FILE:test_fixture_decoder> ${JQ_EXECUTABLE})
+    add_test(NAME reentrant COMMAND ${SH_EXECUTABLE}
+             ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_reentrant.sh $<TARGET_FILE:mbus>)
+    set_tests_properties(reentrant PROPERTIES SKIP_RETURN_CODE 77)
     add_test(NAME medium COMMAND ${SH_EXECUTABLE}
              ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_medium.sh
              $<TARGET_FILE:test_fixture_decoder> ${JQ_EXECUTABLE})

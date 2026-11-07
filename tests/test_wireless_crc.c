@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 
+static mbus_context ctx;
+
 static mbus_result result;
 static const char *error;
 
@@ -118,7 +120,7 @@ static void upstream_vectors(void)
     assert(mbus_wireless_remove_crc(raw, n, MBUS_WIRELESS_FORMAT_A,
                                     plain, sizeof(plain), &out, &error) == MBUS_OK);
     assert(out == expected_n && memcmp(plain, expected, out) == 0);
-    assert(mbus_decode(raw, n, MBUS_WIRELESS_FORMAT_A, &result, &error) == MBUS_OK);
+    assert(mbus_decode(&ctx, raw, n, MBUS_WIRELESS_FORMAT_A, &result, &error) == MBUS_OK);
     assert(result.format == MBUS_WIRELESS && result.telegram_length == out &&
            memcmp(result.telegram, plain, out) == 0);
     assert(mbus_get_header_info(raw, n, MBUS_WIRELESS_FORMAT_A, &info, &error) == MBUS_OK);
@@ -215,27 +217,28 @@ static void oms_decode(void)
     uint8_t raw[MBUS_MAX_RAW_WIRELESS];
     mbus_format format;
     int calls = 0;
-    assert(mbus_set_key_provider(provider, &calls) == MBUS_OK);
+    assert(mbus_set_key_provider(&ctx, provider, &calls) == MBUS_OK);
     for (format = MBUS_WIRELESS_FORMAT_A; format <= MBUS_WIRELESS_FORMAT_B; format++) {
         size_t n = make_raw(gas, sizeof(gas), format, raw);
-        assert(mbus_decode_with_keys(raw, n, format, &key, 1, &result, &error) == MBUS_OK);
+        assert(mbus_decode_with_keys(&ctx, raw, n, format, &key, 1, &result, &error) == MBUS_OK);
         assert(calls == (int)(format - MBUS_WIRELESS_FORMAT_A));
         assert(result.decrypted && result.format == MBUS_WIRELESS);
         assert(result.telegram_length == sizeof(gas) && result.records[0].has_value);
         assert(fabs(result.records[0].value - 28504.27) < 1e-8);
-        assert(mbus_decode(raw, n, format, &result, &error) == MBUS_OK);
+        assert(mbus_decode(&ctx, raw, n, format, &result, &error) == MBUS_OK);
         assert(calls == (int)(format - MBUS_WIRELESS_FORMAT_A) + 1);
         assert(result.decrypted && fabs(result.records[0].value - 28504.27) < 1e-8);
         raw[n - 1] ^= 1;
-        assert(mbus_decode(raw, n, format, &result, &error) == MBUS_INVALID);
+        assert(mbus_decode(&ctx, raw, n, format, &result, &error) == MBUS_INVALID);
         assert(error && strstr(error, "CRC"));
         assert(calls == (int)(format - MBUS_WIRELESS_FORMAT_A) + 1);
     }
-    assert(mbus_set_key_provider(NULL, NULL) == MBUS_OK);
+    assert(mbus_set_key_provider(&ctx, NULL, NULL) == MBUS_OK);
 }
 
 int main(void)
 {
+    mbus_context_init(&ctx);
     upstream_vectors();
     boundaries();
     oms_decode();

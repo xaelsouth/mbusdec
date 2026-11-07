@@ -8,6 +8,7 @@
 
 static char input[INPUT_SIZE];
 static uint8_t telegram[MBUS_MAX_TELEGRAM];
+static mbus_context ctx;
 static mbus_result result;
 static mbus_key keys[MBUS_MAX_KEYS];
 static size_t key_count;
@@ -54,7 +55,7 @@ static rtl_outcome decode(mbus_format format, size_t length, const cli_receiver_
     if (status == MBUS_OK && have_key_store)
         status = cli_keys_match(&key_store, telegram, length, format, keys, &key_count, &error);
     if (status == MBUS_OK)
-        status = mbus_decode_with_keys(telegram, length, format, keys, key_count, &result, &error);
+        status = mbus_decode_with_keys(&ctx, telegram, length, format, keys, key_count, &result, &error);
     if (status == MBUS_OK) {
         error = cli_json_identity_error(&result);
         if (error != NULL)
@@ -158,6 +159,7 @@ int main(int argc, char **argv)
 {
     const char *error = NULL, *key_path = NULL, *filter_path = NULL;
     int rtl_option_seen = 0, i, result_code;
+    mbus_context_init(&ctx);
     for (i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--rtl-wmbus") && !rtl_option_seen) rtl_option_seen = 1;
         else if (!strcmp(argv[i], "--keys") && !key_path && i + 1 < argc) key_path = argv[++i];

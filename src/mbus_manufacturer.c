@@ -2,51 +2,49 @@
 
 #include <string.h>
 
-typedef struct {
-    uint16_t manufacturer;
-    mbus_manufacturer_decoder decoder;
-    void *context;
-} decoder_entry;
-
-static decoder_entry decoders[MBUS_MAX_MANUFACTURER_DECODERS];
-static size_t decoder_count;
-static size_t dispatch_depth;
+void mbus_context_init(mbus_context *ctx)
+{
+    if (ctx != NULL)
+        memset(ctx, 0, sizeof(*ctx));
+}
 
 mbus_status mbus_register_manufacturer_decoder(
-    uint16_t manufacturer, mbus_manufacturer_decoder decoder, void *context)
+    mbus_context *ctx, uint16_t manufacturer, mbus_manufacturer_decoder decoder,
+    void *context)
 {
     size_t i;
-    if (decoder == NULL)
+    if (ctx == NULL || decoder == NULL)
         return MBUS_INVALID;
-    if (dispatch_depth != 0)
+    if (ctx->dispatch_depth != 0)
         return MBUS_INVALID;
-    for (i = 0; i < decoder_count; i++) {
-        if (decoders[i].manufacturer == manufacturer) {
-            decoders[i].decoder = decoder;
-            decoders[i].context = context;
+    for (i = 0; i < ctx->decoder_count; i++) {
+        if (ctx->decoders[i].manufacturer == manufacturer) {
+            ctx->decoders[i].decoder = decoder;
+            ctx->decoders[i].context = context;
             return MBUS_OK;
         }
     }
-    if (decoder_count == MBUS_MAX_MANUFACTURER_DECODERS)
+    if (ctx->decoder_count == MBUS_MAX_MANUFACTURER_DECODERS)
         return MBUS_LIMIT;
-    decoders[decoder_count].manufacturer = manufacturer;
-    decoders[decoder_count].decoder = decoder;
-    decoders[decoder_count].context = context;
-    decoder_count++;
+    ctx->decoders[ctx->decoder_count].manufacturer = manufacturer;
+    ctx->decoders[ctx->decoder_count].decoder = decoder;
+    ctx->decoders[ctx->decoder_count].context = context;
+    ctx->decoder_count++;
     return MBUS_OK;
 }
 
-mbus_status mbus_unregister_manufacturer_decoder(uint16_t manufacturer)
+mbus_status mbus_unregister_manufacturer_decoder(mbus_context *ctx,
+                                                 uint16_t manufacturer)
 {
     size_t i;
-    if (dispatch_depth != 0)
+    if (ctx == NULL || ctx->dispatch_depth != 0)
         return MBUS_INVALID;
-    for (i = 0; i < decoder_count; i++) {
-        if (decoders[i].manufacturer == manufacturer) {
-            memmove(&decoders[i], &decoders[i + 1],
-                    (decoder_count - i - 1) * sizeof(decoders[0]));
-            decoder_count--;
-            memset(&decoders[decoder_count], 0, sizeof(decoders[0]));
+    for (i = 0; i < ctx->decoder_count; i++) {
+        if (ctx->decoders[i].manufacturer == manufacturer) {
+            memmove(&ctx->decoders[i], &ctx->decoders[i + 1],
+                    (ctx->decoder_count - i - 1) * sizeof(ctx->decoders[0]));
+            ctx->decoder_count--;
+            memset(&ctx->decoders[ctx->decoder_count], 0, sizeof(ctx->decoders[0]));
             return MBUS_OK;
         }
     }
@@ -54,7 +52,7 @@ mbus_status mbus_unregister_manufacturer_decoder(uint16_t manufacturer)
 }
 
 mbus_status mbus_dispatch_manufacturer_decoder(
-    mbus_manufacturer_block_kind kind, uint16_t manufacturer,
+    mbus_context *ctx, mbus_manufacturer_block_kind kind, uint16_t manufacturer,
     const uint8_t *data, size_t length, size_t offset,
     mbus_record *record, mbus_result *result, int *handled,
     const char **error)
@@ -63,16 +61,16 @@ mbus_status mbus_dispatch_manufacturer_decoder(
     if (handled == NULL)
         return mbus_fail(error, MBUS_INVALID, "null manufacturer decoder result");
     *handled = 0;
-    for (i = 0; i < decoder_count; i++) {
+    for (i = 0; i < ctx->decoder_count; i++) {
         mbus_status status;
-        if (decoders[i].manufacturer != manufacturer)
+        if (ctx->decoders[i].manufacturer != manufacturer)
             continue;
         if (error != NULL)
             *error = NULL;
-        dispatch_depth++;
-        status = decoders[i].decoder(kind, manufacturer, data, length, offset,
-                                     record, result, decoders[i].context, error);
-        dispatch_depth--;
+        ctx->dispatch_depth++;
+        status = ctx->decoders[i].decoder(kind, manufacturer, data, length, offset,
+                                     record, result, ctx->decoders[i].context, error);
+        ctx->dispatch_depth--;
         if (status == MBUS_UNSUPPORTED) {
             if (error != NULL)
                 *error = NULL;

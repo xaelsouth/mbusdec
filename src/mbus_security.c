@@ -84,7 +84,7 @@ done:
     return ok;
 }
 
-mbus_status mbus_decode_security(const uint8_t *telegram, size_t *position,
+mbus_status mbus_decode_security(mbus_context *ctx, const uint8_t *telegram, size_t *position,
                                  size_t end, const mbus_key *keys, size_t key_count,
                                  mbus_result *result, const char **error)
 {
@@ -197,7 +197,7 @@ mbus_status mbus_decode_security(const uint8_t *telegram, size_t *position,
         result->decrypted = 1;
         mode7_encrypted_end = pos + encrypted_length - padding;
         if (padding) {
-            mbus_status status = mbus_decode_records(result->telegram + pos,
+            mbus_status status = mbus_decode_records(ctx, result->telegram + pos,
                                                       mode7_encrypted_end - pos, pos, result, error);
             if (status != MBUS_OK)
                 return status;

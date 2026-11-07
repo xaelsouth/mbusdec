@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <string.h>
 
+static mbus_context ctx;
+
 static mbus_status fallback_provider(const mbus_identity *application,
                                      const mbus_identity *link,
                                      mbus_synchronization sync, mbus_key *keys,
@@ -33,6 +35,7 @@ static void check(const cli_key_store *store, const uint8_t *frame, size_t lengt
 
 int main(void)
 {
+    mbus_context_init(&ctx);
     cli_key_store store = {0};
     uint8_t frame[] = {14, 0x44, 0xae, 0x4c, 0x44, 0x55, 0x22, 0x33,
                        0x99, 0x07, 0x7a, 0x55, 0, 0x10, 0x05};
@@ -132,10 +135,10 @@ int main(void)
         const char *error = NULL;
         size_t count = 0;
         int calls = 0;
-        assert(mbus_set_key_provider(fallback_provider, &calls) == MBUS_OK);
+        assert(mbus_set_key_provider(&ctx, fallback_provider, &calls) == MBUS_OK);
         assert(cli_keys_match(&selected, encrypted, sizeof(encrypted), MBUS_WIRELESS,
                               keys, &count, &error) == MBUS_OK && count == 0);
-        assert(mbus_decode_with_keys(encrypted, sizeof(encrypted), MBUS_WIRELESS,
+        assert(mbus_decode_with_keys(&ctx, encrypted, sizeof(encrypted), MBUS_WIRELESS,
                                      keys, count, &decoded, &error) == MBUS_OK);
         assert(calls == 1 && decoded.decrypted);
         selected.count = 1;
@@ -143,10 +146,10 @@ int main(void)
         count = 0;
         assert(cli_keys_match(&selected, encrypted, sizeof(encrypted), MBUS_WIRELESS,
                               keys, &count, &error) == MBUS_OK && count == 1);
-        assert(mbus_decode_with_keys(encrypted, sizeof(encrypted), MBUS_WIRELESS,
+        assert(mbus_decode_with_keys(&ctx, encrypted, sizeof(encrypted), MBUS_WIRELESS,
                                      keys, count, &decoded, &error) == MBUS_INVALID);
         assert(calls == 1);
-        assert(mbus_set_key_provider(NULL, NULL) == MBUS_OK);
+        assert(mbus_set_key_provider(&ctx, NULL, NULL) == MBUS_OK);
     }
     return 0;
 }
