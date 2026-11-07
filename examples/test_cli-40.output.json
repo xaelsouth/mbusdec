@@ -5,20 +5,23 @@
     "serial_no": 11223344,
     "manufacturer": "QDS",
     "version": "55",
-    "device_type": "37"
+    "device_type": "37",
+    "medium": "MEDIUM_RADIO_CONVERTER_METER"
   },
   "transport_identity": {
     "serial_no": 55667788,
     "manufacturer": "QDS",
     "version": "55",
-    "device_type": "08"
+    "device_type": "08",
+    "medium": "MEDIUM_HEAT_COST_ALLOCATOR"
   },
   "primary_identity_layer": "application",
   "primary_identity": {
     "serial_no": 55667788,
     "manufacturer": "QDS",
     "version": "55",
-    "device_type": "08"
+    "device_type": "08",
+    "medium": "MEDIUM_HEAT_COST_ALLOCATOR"
   },
   "extended_link": {
     "ci": "8C",

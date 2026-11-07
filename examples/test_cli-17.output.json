@@ -5,7 +5,8 @@
     "serial_no": 78563412,
     "manufacturer": "KAM",
     "version": "01",
-    "device_type": "07"
+    "device_type": "07",
+    "medium": "MEDIUM_WATER"
   },
   "transport_identity": null,
   "primary_identity_layer": "link",
@@ -13,7 +14,8 @@
     "serial_no": 78563412,
     "manufacturer": "KAM",
     "version": "01",
-    "device_type": "07"
+    "device_type": "07",
+    "medium": "MEDIUM_WATER"
   },
   "ci": "78",
   "groups": [

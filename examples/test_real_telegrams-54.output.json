@@ -5,7 +5,8 @@
     "serial_no": 66666666,
     "manufacturer": "ELV",
     "version": "20",
-    "device_type": "1B"
+    "device_type": "1B",
+    "medium": "MEDIUM_AMBIENT_SENSOR"
   },
   "transport_identity": null,
   "primary_identity_layer": "link",
@@ -13,7 +14,8 @@
     "serial_no": 66666666,
     "manufacturer": "ELV",
     "version": "20",
-    "device_type": "1B"
+    "device_type": "1B",
+    "medium": "MEDIUM_AMBIENT_SENSOR"
   },
   "ci": "7A",
   "access_number": 249,

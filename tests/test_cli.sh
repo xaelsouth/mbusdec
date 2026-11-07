@@ -6,7 +6,7 @@ jq=$2
 request='{"format":"wireless","telegram":"16442D2C123456780107780202D20402152E16022A3423","keys":["00000000000000000000000000000000"]}'
 printf '%s' "$request" | "$decoder" | "$jq" -e '
   .format == "wireless" and .control == "44" and
-  (.link_identity | .serial_no == 78563412 and .manufacturer == "KAM" and .version == "01" and .device_type == "07") and
+  (.link_identity | .serial_no == 78563412 and .manufacturer == "KAM" and .version == "01" and .device_type == "07" and .medium == "MEDIUM_WATER") and
   .transport_identity == null and
   (.groups | length == 1) and
   (.groups[0] | .storage == 0 and .tariff == 0 and .function == "instantaneous" and (.records | length == 3)) and
@@ -136,11 +136,11 @@ expect_error() {
 
 request='{"format":"wireless","telegram":"0D442D2C56341200010778010301"}'
 printf '%s' "$request" | "$decoder" | "$jq" -e '
-  .link_identity == {"serial_no":123456,"manufacturer":"KAM","version":"01","device_type":"07"}
+  .link_identity == {"serial_no":123456,"manufacturer":"KAM","version":"01","device_type":"07","medium":"MEDIUM_WATER"}
 ' >/dev/null
 request='{"format":"wireless","telegram":"0D44685056341200ABCD78010301"}'
 printf '%s' "$request" | "$decoder" | "$jq" -e '
-  .link_identity == {"serial_no":123456,"manufacturer":"TCH","version":"AB","device_type":"CD"}
+  .link_identity == {"serial_no":123456,"manufacturer":"TCH","version":"AB","device_type":"CD","medium":null}
 ' >/dev/null
 request='{"format":"wired","telegram":"680404680801780F9016"}'
 printf '%s' "$request" | "$decoder" | "$jq" -e '

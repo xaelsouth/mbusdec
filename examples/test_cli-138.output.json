@@ -5,20 +5,23 @@
     "serial_no": 78563412,
     "manufacturer": "KAM",
     "version": "01",
-    "device_type": "07"
+    "device_type": "07",
+    "medium": "MEDIUM_WATER"
   },
   "transport_identity": {
     "serial_no": 21436587,
     "manufacturer": "DQT",
     "version": "02",
-    "device_type": "04"
+    "device_type": "04",
+    "medium": "MEDIUM_HEAT_OUTLET"
   },
   "primary_identity_layer": "application",
   "primary_identity": {
     "serial_no": 21436587,
     "manufacturer": "DQT",
     "version": "02",
-    "device_type": "04"
+    "device_type": "04",
+    "medium": "MEDIUM_HEAT_OUTLET"
   },
   "ci": "72",
   "access_number": 3,

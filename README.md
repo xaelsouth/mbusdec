@@ -88,6 +88,11 @@ An odd-length datagram with a passing receiver CRC produces an `"invalid"`
 error and processing continues. CRC failure takes precedence over datagram
 parsing, so failed telegrams are never decoded.
 
+Each decoded identity contains the raw `device_type` as a two-digit hex string
+and `medium` as the corresponding `MEDIUM_*` enum name, for example
+`"device_type":"07","medium":"MEDIUM_WATER"`. For unlisted device type values,
+`medium` is `null` and the raw `device_type` is retained.
+
 The optional key file is a JSON array, read once at startup. An entry can
 specify an application-layer address, an optional link-layer address, and a
 nonempty `keys` array:
@@ -113,8 +118,8 @@ decimal string is also accepted to make leading zeroes explicit. `device_type`
 and `version` are exactly two hexadecimal digits each, and `manufacturer` is
 the uppercase three-letter M-Bus manufacturer code. These fields together
 identify the transport (ALA) or link (LLA) address, not just the serial.
-The older `serialNo` and `deviceType` names are accepted for compatibility;
-do not specify both names for the same field.
+The older `serialNo` name is accepted for compatibility; do not specify both
+serial names in the same identity. `deviceType` is not accepted; use `device_type`.
 The address names `ala` and `lla` are also accepted as legacy aliases for
 `application_layer_address` and `link_layer_address`; do not specify both
 names for the same address.

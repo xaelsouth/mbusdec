@@ -7,14 +7,16 @@
     "serial_no": 10484075,
     "manufacturer": "EFE",
     "version": "00",
-    "device_type": "04"
+    "device_type": "04",
+    "medium": "MEDIUM_HEAT_OUTLET"
   },
   "primary_identity_layer": "application",
   "primary_identity": {
     "serial_no": 10484075,
     "manufacturer": "EFE",
     "version": "00",
-    "device_type": "04"
+    "device_type": "04",
+    "medium": "MEDIUM_HEAT_OUTLET"
   },
   "ci": "72",
   "access_number": 49,

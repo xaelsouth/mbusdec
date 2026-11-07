@@ -31,7 +31,7 @@ printf '[{"link_layer_address":"9344443322115537"}]' > "$tmp/filter.json"
 "$decoder" --filter "$tmp/filter.json" --keys "$examples/rtl-keys.json" < "$tmp/input" > "$tmp/output"
 "$jq" -se 'length == 1 and .[0].decrypted == true' "$tmp/output" >/dev/null
 
-printf '[{"ala":{"serialNo":"55667788","deviceType":"08","version":"55","manufacturer":"QDS"},"lla":""}]' > "$tmp/filter.json"
+printf '[{"ala":{"serialNo":"55667788","device_type":"08","version":"55","manufacturer":"QDS"},"lla":""}]' > "$tmp/filter.json"
 "$decoder" --filter "$tmp/filter.json" --keys "$examples/rtl-keys.json" < "$tmp/input" > "$tmp/output"
 "$jq" -se 'length == 1 and .[0].decrypted == true' "$tmp/output" >/dev/null
 
@@ -73,6 +73,8 @@ done
 "$jq" -se 'length == 1 and .[0].primary_identity.serial_no == 78563412' "$tmp/output" >/dev/null
 
 for content in '{}' '[{}]' '[{"link_layer_address":""}]' \
+    '[{"application_layer_address":{"serial_no":55667788,"deviceType":"08","version":"55","manufacturer":"QDS"}}]' \
+    '[{"link_layer_address":{"serial_no":11223344,"deviceType":"37","version":"55","manufacturer":"QDS"}}]' \
     '[{"application_layer_address":"9344887766555508","ala":"9344887766555508"}]' \
     '[{"application_layer_address":"9344887766555508","unknown":1}]' \
     '[{"application_layer_address":"9344887766555508","keys":[1,]}]' \

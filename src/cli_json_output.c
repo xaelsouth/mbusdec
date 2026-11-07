@@ -182,8 +182,55 @@ static void manufacturer_field(writer *w, const char *name, uint16_t code)
     string_field(w, name, manufacturer);
 }
 
+static const char *device_type_name(uint8_t medium)
+{
+#define MEDIUM_NAME(name) [name] = #name
+    static const char *const names[] = {
+        MEDIUM_NAME(MEDIUM_OTHER),
+        MEDIUM_NAME(MEDIUM_OIL),
+        MEDIUM_NAME(MEDIUM_ELECTRICITY),
+        MEDIUM_NAME(MEDIUM_GAS),
+        MEDIUM_NAME(MEDIUM_HEAT_OUTLET),
+        MEDIUM_NAME(MEDIUM_STEAM),
+        MEDIUM_NAME(MEDIUM_WARM_WATER),
+        MEDIUM_NAME(MEDIUM_WATER),
+        MEDIUM_NAME(MEDIUM_HEAT_COST_ALLOCATOR),
+        MEDIUM_NAME(MEDIUM_COMPRESSED_AIR),
+        MEDIUM_NAME(MEDIUM_COOLING_OUTLET),
+        MEDIUM_NAME(MEDIUM_COOLING_INLET),
+        MEDIUM_NAME(MEDIUM_HEAT_INLET),
+        MEDIUM_NAME(MEDIUM_HEAT_AND_COOLING),
+        MEDIUM_NAME(MEDIUM_BUS_SYSTEM),
+        MEDIUM_NAME(MEDIUM_UNKNOWN),
+        MEDIUM_NAME(MEDIUM_IRRIGATION_WATER),
+        MEDIUM_NAME(MEDIUM_WATER_LOGGER),
+        MEDIUM_NAME(MEDIUM_GAS_LOGGER),
+        MEDIUM_NAME(MEDIUM_GAS_CONVERTER),
+        MEDIUM_NAME(MEDIUM_CALORIFIC_VALUE),
+        MEDIUM_NAME(MEDIUM_HOT_WATER),
+        MEDIUM_NAME(MEDIUM_COLD_WATER),
+        MEDIUM_NAME(MEDIUM_DUAL_WATER),
+        MEDIUM_NAME(MEDIUM_PRESSURE),
+        MEDIUM_NAME(MEDIUM_ADC),
+        MEDIUM_NAME(MEDIUM_SMOKE_DETECTOR),
+        MEDIUM_NAME(MEDIUM_AMBIENT_SENSOR),
+        MEDIUM_NAME(MEDIUM_GAS_DETECTOR),
+        MEDIUM_NAME(MEDIUM_ELECTRICITY_BREAKER),
+        MEDIUM_NAME(MEDIUM_GAS_OR_WATER_VALVE),
+        MEDIUM_NAME(MEDIUM_CUSTOMER_DISPLAY),
+        MEDIUM_NAME(MEDIUM_WASTE_WATER),
+        MEDIUM_NAME(MEDIUM_GARBAGE),
+        MEDIUM_NAME(MEDIUM_SERVICE_UNIT),
+        MEDIUM_NAME(MEDIUM_RADIO_CONVERTER_SYSTEM),
+        MEDIUM_NAME(MEDIUM_RADIO_CONVERTER_METER),
+    };
+#undef MEDIUM_NAME
+    return medium < sizeof(names) / sizeof(names[0]) ? names[medium] : NULL;
+}
+
 static void identity_field(writer *w, const char *name, const mbus_identity *id, int present)
 {
+    const char *device_name;
     uint32_t serial = 0;
     size_t i;
     if (!present) {
@@ -200,6 +247,11 @@ static void identity_field(writer *w, const char *name, const mbus_identity *id,
     manufacturer_field(w, "manufacturer", id->manufacturer);
     hex_field(w, "version", &id->version, 1);
     hex_field(w, "device_type", &id->medium, 1);
+    device_name = device_type_name(id->medium);
+    if (device_name != NULL)
+        string_field(w, "medium", device_name);
+    else
+        null_field(w, "medium");
     end(w, '}');
 }
 

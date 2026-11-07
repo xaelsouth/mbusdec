@@ -252,7 +252,7 @@ static int parse_event(int event, const char *s, int off, int len, void *data)
     } else if ((p->state == ID_FIRST || p->state == ID_FIELD) && event == MJSON_TOK_KEY) {
         if (literal(s + off, len, "serial_no") || literal(s + off, len, "serialNo"))
             p->id_field = ID_SERIAL;
-        else if (literal(s + off, len, "device_type") || literal(s + off, len, "deviceType"))
+        else if (literal(s + off, len, "device_type"))
             p->id_field = ID_DEVICE;
         else if (literal(s + off, len, "version")) p->id_field = ID_VERSION;
         else if (literal(s + off, len, "manufacturer")) p->id_field = ID_MANUFACTURER;

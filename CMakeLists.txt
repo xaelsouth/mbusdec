@@ -93,6 +93,9 @@ if(BUILD_TESTING)
     add_test(NAME fixture_decoder COMMAND ${SH_EXECUTABLE}
              ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cli.sh
              $<TARGET_FILE:test_fixture_decoder> ${JQ_EXECUTABLE})
+    add_test(NAME medium COMMAND ${SH_EXECUTABLE}
+             ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_medium.sh
+             $<TARGET_FILE:test_fixture_decoder> ${JQ_EXECUTABLE})
     add_test(NAME real_telegrams COMMAND ${SH_EXECUTABLE}
              ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_real_telegrams.sh
              $<TARGET_FILE:test_fixture_decoder> ${JQ_EXECUTABLE})

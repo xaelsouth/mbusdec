@@ -5,7 +5,8 @@
     "serial_no": 20096221,
     "manufacturer": "DWZ",
     "version": "02",
-    "device_type": "06"
+    "device_type": "06",
+    "medium": "MEDIUM_WARM_WATER"
   },
   "transport_identity": null,
   "primary_identity_layer": "link",
@@ -13,7 +14,8 @@
     "serial_no": 20096221,
     "manufacturer": "DWZ",
     "version": "02",
-    "device_type": "06"
+    "device_type": "06",
+    "medium": "MEDIUM_WARM_WATER"
   },
   "ci": "7A",
   "access_number": 54,

@@ -5,20 +5,23 @@
     "serial_no": 61070071,
     "manufacturer": "AAA",
     "version": "25",
-    "device_type": "07"
+    "device_type": "07",
+    "medium": "MEDIUM_WATER"
   },
   "transport_identity": {
     "serial_no": 61070071,
     "manufacturer": "AAA",
     "version": "25",
-    "device_type": "07"
+    "device_type": "07",
+    "medium": "MEDIUM_WATER"
   },
   "primary_identity_layer": "application",
   "primary_identity": {
     "serial_no": 61070071,
     "manufacturer": "AAA",
     "version": "25",
-    "device_type": "07"
+    "device_type": "07",
+    "medium": "MEDIUM_WATER"
   },
   "ci": "72",
   "access_number": 181,

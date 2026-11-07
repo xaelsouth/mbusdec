@@ -14,7 +14,7 @@ printf 'T1;1;1;time;1;1;11223344;0x16442D2C123456780107780202D20402152E16022A342
 cmp "$tmp/output" "$tmp/explicit"
 "$jq" -e '.format == "wireless" and .decode_status == {"code":0,"text":"ok"} and
     (has("datagram") | not) and
-    .primary_identity == {"serial_no":78563412,"manufacturer":"KAM","version":"01","device_type":"07"} and
+    .primary_identity == {"serial_no":78563412,"manufacturer":"KAM","version":"01","device_type":"07","medium":"MEDIUM_WATER"} and
     .ci == "78" and .timestamp == "time" and
     ([.. | objects | select(has("value_hex"))] | length == 0) and
     .groups[0].records[0].raw_value == 1234' "$tmp/output" >/dev/null
@@ -110,10 +110,13 @@ cat > "$tmp/keys.json" <<'EOF'
 EOF
 printf 'T1;1;1;time;1;1;11223344;0x%s\n' "$frame" |
     "$decoder" --rtl-wmbus --keys "$tmp/keys.json" |
-    "$jq" -e '.decrypted == true' >/dev/null
+    "$jq" -e '.decrypted == true and
+      .link_identity.medium == "MEDIUM_RADIO_CONVERTER_METER" and
+      .transport_identity.medium == "MEDIUM_HEAT_COST_ALLOCATOR" and
+      .primary_identity.medium == "MEDIUM_HEAT_COST_ALLOCATOR"' >/dev/null
 cat > "$tmp/keys.json" <<'EOF'
-[{"ala":{"serialNo":55667788,"deviceType":"08","version":"55","manufacturer":"QDS"},
-  "lla":{"serialNo":11223344,"deviceType":"37","version":"55","manufacturer":"QDS"},
+[{"ala":{"serialNo":55667788,"device_type":"08","version":"55","manufacturer":"QDS"},
+  "lla":{"serialNo":11223344,"device_type":"37","version":"55","manufacturer":"QDS"},
   "keys":[{"type":"a","key":"000102030405060708090A0B0C0D0E0F"}]}]
 EOF
 printf 'T1;1;1;time;1;1;11223344;0x%s\n' "$frame" |
@@ -174,6 +177,7 @@ for field in application_layer_address link_layer_address; do
         '{"serial_no":55667788,"device_type":"08","version":"55","manufacturer":"qds"}' \
         '{"serial_no":55667788,"device_type":"08","version":"55","manufacturer":"QDS","serial_no":1}' \
         '{"serial_no":55667788,"serialNo":55667788,"device_type":"08","version":"55","manufacturer":"QDS"}' \
+        '{"serial_no":55667788,"deviceType":"08","version":"55","manufacturer":"QDS"}' \
         '{"serial_no":55667788,"device_type":"08","deviceType":"08","version":"55","manufacturer":"QDS"}' \
         '{"serial_no":55667788,"device_type":"08","version":"55","manufacturer":"QDS",}'; do
         printf '[{"%s":%s,"keys":[{"key":"000102030405060708090A0B0C0D0E0F"}]}]' "$field" "$identity" > "$tmp/keys.json"
