@@ -56,11 +56,52 @@ typedef enum {
     MBUS_LIMIT
 } mbus_status;
 
+/* Known device types; mbus_identity.medium also preserves unlisted values. */
+typedef enum {
+    MEDIUM_OTHER = 0x00,
+    MEDIUM_OIL = 0x01,
+    MEDIUM_ELECTRICITY = 0x02,
+    MEDIUM_GAS = 0x03,
+    MEDIUM_HEAT_OUTLET = 0x04,
+    MEDIUM_STEAM = 0x05,
+    MEDIUM_WARM_WATER = 0x06,
+    MEDIUM_WATER = 0x07,
+    MEDIUM_HEAT_COST_ALLOCATOR = 0x08,
+    MEDIUM_COMPRESSED_AIR = 0x09,
+    MEDIUM_COOLING_OUTLET = 0x0a,
+    MEDIUM_COOLING_INLET = 0x0b,
+    MEDIUM_HEAT_INLET = 0x0c,
+    MEDIUM_HEAT_AND_COOLING = 0x0d,
+    MEDIUM_BUS_SYSTEM = 0x0e,
+    MEDIUM_UNKNOWN = 0x0f,
+    MEDIUM_IRRIGATION_WATER = 0x10,
+    MEDIUM_WATER_LOGGER = 0x11,
+    MEDIUM_GAS_LOGGER = 0x12,
+    MEDIUM_GAS_CONVERTER = 0x13,
+    MEDIUM_CALORIFIC_VALUE = 0x14,
+    MEDIUM_HOT_WATER = 0x15,
+    MEDIUM_COLD_WATER = 0x16,
+    MEDIUM_DUAL_WATER = 0x17,
+    MEDIUM_PRESSURE = 0x18,
+    MEDIUM_ADC = 0x19,
+    MEDIUM_SMOKE_DETECTOR = 0x1a,
+    MEDIUM_AMBIENT_SENSOR = 0x1b,
+    MEDIUM_GAS_DETECTOR = 0x1c,
+    MEDIUM_ELECTRICITY_BREAKER = 0x20,
+    MEDIUM_GAS_OR_WATER_VALVE = 0x21,
+    MEDIUM_CUSTOMER_DISPLAY = 0x25,
+    MEDIUM_WASTE_WATER = 0x28,
+    MEDIUM_GARBAGE = 0x29,
+    MEDIUM_SERVICE_UNIT = 0x30,
+    MEDIUM_RADIO_CONVERTER_SYSTEM = 0x36,
+    MEDIUM_RADIO_CONVERTER_METER = 0x37
+} mbus_device_type;
+
 typedef struct {
     uint16_t manufacturer;
     uint8_t identification[4];
     uint8_t version;
-    uint8_t medium;
+    uint8_t medium; /* Raw device type; compare with mbus_device_type constants. */
 } mbus_identity;
 
 typedef enum {

@@ -162,8 +162,12 @@ static void headers_and_errors(void)
     assert(result.transport_identity.manufacturer == 0x1234);
     assert(memcmp(result.link_identity.identification, "\x12\x34\x56\x78", 4) == 0);
     assert(memcmp(result.transport_identity.identification, "\x87\x65\x43\x21", 4) == 0);
-    assert(result.link_identity.version == 1 && result.link_identity.medium == 7);
-    assert(result.transport_identity.version == 2 && result.transport_identity.medium == 4);
+    assert(result.link_identity.version == 1 && result.link_identity.medium == MEDIUM_WATER);
+    assert(result.transport_identity.version == 2 && result.transport_identity.medium == MEDIUM_HEAT_OUTLET);
+    n = wireless(frame, short_header, sizeof(short_header));
+    frame[9] = 0xff;
+    assert(mbus_decode(frame, n, MBUS_WIRELESS, &result, &error) == MBUS_OK);
+    assert(result.link_identity.medium == 0xff);
     n = wired(frame, long_header, sizeof(long_header));
     assert(mbus_decode(frame, n, MBUS_WIRED, &result, &error) == MBUS_OK);
     assert(!result.has_link_identity && result.has_transport_identity);

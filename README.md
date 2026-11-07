@@ -373,6 +373,12 @@ API summary:
   using untrusted input. The conversion is a runtime expression, not a C
   constant expression. For example, use it when registering a manufacturer
   decoder or comparing `mbus_identity.manufacturer`.
+* `mbus_device_type`: named device-type values such as `MEDIUM_WATER`,
+  `MEDIUM_GAS`, and `MEDIUM_HEAT_COST_ALLOCATOR`. Compare these to
+  `mbus_identity.medium`. The field remains a raw byte so unlisted, reserved,
+  and manufacturer-specific values are preserved rather than rejected or
+  converted to `MEDIUM_UNKNOWN`. These names follow the device-medium
+  values in [libmbus](https://github.com/rscada/libmbus/blob/057ab6314d4067b0f75f3f6f067d741262d2d3de/mbus/mbus-protocol.h).
 * `mbus_version`: return the library's CMake project version as a
   NUL-terminated string, for example `"0.1.0"`. The string has static
   lifetime, is read-only, and must not be freed.
