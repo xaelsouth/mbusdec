@@ -30,3 +30,21 @@ if(NOT MSVC)
     target_compile_options(mbus PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+add_library(mbus_cli STATIC src/cli_json_output.c src/cli_keys.c thirdparty/mjson/mjson.c)
+target_include_directories(mbus_cli PRIVATE include/private thirdparty/mjson)
+target_compile_definitions(mbus_cli PRIVATE
+    MJSON_ENABLE_RPC=0 MJSON_ENABLE_BASE64=0 MJSON_ENABLE_MERGE=0
+    MJSON_ENABLE_PRETTY=0 MJSON_ENABLE_NEXT=0)
+target_link_libraries(mbus_cli PUBLIC mbus)
+set_target_properties(mbus_cli PROPERTIES C_EXTENSIONS OFF)
+if(NOT MSVC)
+    target_compile_options(mbus_cli PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+add_executable(mbusdec src/main.c)
+target_include_directories(mbusdec PRIVATE include/private)
+target_link_libraries(mbusdec PRIVATE mbus_cli)
+if(NOT MSVC)
+    target_compile_options(mbusdec PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
